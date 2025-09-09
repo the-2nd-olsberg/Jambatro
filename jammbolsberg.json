@@ -1,0 +1,11 @@
+{
+  "id": "jammbo",
+  "name": "Jambatro",
+  "author": ["Olsberg (Jammbo)"],
+  "description": "This mod adds some jokers and some consumeables and some other things too. Its a bit silly but its not like broken or anything.",
+  "badge_colour": "455687",
+	"badge_text_colour": "FFFFFF",
+  "prefix": "jammbo",
+  "main_file": "jammbo.lua",
+  "version": "1.0.3"
+}
