@@ -4396,7 +4396,7 @@ SMODS.Consumable{
     },
     set = 'Tarot',
     atlas = 'jam_tarot',
-    pos = { x = 3, y = 0 },
+    pos = { x = 4, y = 0 },
     discovered = true,
 
     use = function(self, card, area, copier)
