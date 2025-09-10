@@ -82,31 +82,30 @@ SMODS.Enhancement {
     end
 }
 
-SMODS.Enhancement {
-    key = 'jam_enlightened',
-    loc_txt = {
-        name = "Enlightened Card",
-        text = {
-            "Retriggers card",
-            '{C:attention}1{} time',
-            '{C:inactive}(Not fully implemented)'
-        }
-    },
-    atlas = 'jam_enhancements',
-    pos = { x = 1, y = 0 },
-    config = {  },
-    loc_vars = function(self, info_queue, card)
-        return { vars = {  } }
-    end,
+-- SMODS.Enhancement {
+--     key = 'jam_enlightened',
+--     loc_txt = {
+--         name = "Enlightened Card",
+--         text = {
+--             "Retriggers card",
+--             '{C:attention}1{} time',
+--         }
+--     },
+--     atlas = 'jam_enhancements',
+--     pos = { x = 1, y = 0 },
+--     config = {  },
+--     loc_vars = function(self, info_queue, card)
+--         return { vars = {  } }
+--     end,
 
-    calculate = function(self, card, context)
-        if context.repetition then
-            return {
-                repetitions = 1
-            }
-        end
-    end,
-}
+--     calculate = function(self, card, context)
+--         if context.repetition then
+--             return {
+--                 repetitions = 1
+--             }
+--         end
+--     end,
+-- }
 
 
 -- Jokers
@@ -3565,10 +3564,10 @@ SMODS.Joker {
 }
 
 SMODS.Joker {
-    key = "jam_microtransactions",
+    key = "jam_lootbox",
     loc_txt = {
         name = {
-            'Microtransactions'
+            'Mann Co. Crate'
         },
         text = {
             'Every {C:money}purchase{} has a',
@@ -3583,7 +3582,8 @@ SMODS.Joker {
     eternal_compat = true,
     perishable_compat = false,
     atlas = 'Jammbo',
-    pos = { x = 10, y = 6 },
+    pos = { x = 6, y = 6 },
+    soul_pos = { x = 5, y = 6 },
     pools = { ["Jambatro"] = true },
 
     config = { extra = { odds = 4 } },
@@ -3687,7 +3687,7 @@ SMODS.Joker {
     eternal_compat = true,
     perishable_compat = false,
     atlas = 'Jammbo',
-    pos = { x = 10, y = 6 },
+    pos = { x = 4, y = 6 },
     pools = { ["Jambatro"] = true },
 
     calculate = function(self, card, context)
@@ -4101,7 +4101,7 @@ SMODS.Joker{
     eternal_compat = true,
     perishable_compat = false,
     atlas = 'Jammbo',
-    pos = { x = 10, y = 6 },
+    pos = { x = 8, y = 6 },
     pools = { ["Jambatro"] = true },
 
     config = { extra = { dollar = 1, dollar_gain = 1 } },
@@ -4157,7 +4157,7 @@ SMODS.Joker{
     eternal_compat = true,
     perishable_compat = false,
     atlas = 'Jammbo',
-    pos = { x = 10, y = 6 },
+    pos = { x = 11, y = 2 },
     pools = { ["Jambatro"] = true },
 
     config = { extra = { month = tonumber(os.date("%m")), year = tonumber(os.date("%y")) } },
@@ -4200,7 +4200,7 @@ SMODS.Joker{
     eternal_compat = true,
     perishable_compat = false,
     atlas = 'Jammbo',
-    pos = { x = 10, y = 6 },
+    pos = { x = 11, y = 1 },
     pools = { ["Jambatro"] = true },
 
     config = { extra = { hour = tonumber(os.date("%I")), minute = tonumber(os.date("%M")) } },
@@ -4241,7 +4241,7 @@ SMODS.Joker{
     eternal_compat = true,
     perishable_compat = false,
     atlas = 'Jammbo',
-    pos = { x = 10, y = 6 },
+    pos = { x = 7, y = 6 },
     pools = { ["Jambatro"] = true },
 
     config = { extra = { odds = 4 } },
@@ -4257,6 +4257,51 @@ SMODS.Joker{
                 remove = true,
                 message = "Off with your head!"
             }
+        end
+    end
+}
+
+SMODS.Joker{
+    key = "jam_spaghet",
+    loc_txt = {
+        name = {
+            'Spaghettification'
+        },
+        text = {
+            '{C:green}#1# in #2#{} chance to',
+            'decrease played hand',
+            'level by {C:attention}#3#',
+            'and gain {X:red,C:white}X#5#{} Mult',
+            '{C:inactive}(Currently:{}{X:red,C:white} X#4#{} {C:inactive}Mult){}',
+        }
+    },
+    blueprint_compat = true,
+    rarity = 2,
+    cost = 5,
+    discovered = true,
+    eternal_compat = true,
+    perishable_compat = false,
+    atlas = 'Jammbo',
+    pos = { x = 9, y = 6 },
+    pools = { ["Jambatro"] = true },
+
+    config = { extra = { odds = 5, level = 2, xmult = 1, xmult_gain = 0.3 } },
+
+    loc_vars = function(self, info_queue, card)
+        local numerator, denominator = SMODS.get_probability_vars(card, 1, card.ability.extra.odds, 'spaceiscool')
+        return { vars = { numerator, denominator, card.ability.extra.level, card.ability.extra.xmult, card.ability.extra.xmult_gain } }
+    end,
+
+    calculate = function(self, card, context)
+        if context. SMODS.pseudorandom_probability(card, 'spaceiscool', 1, card.ability.extra.odds) then
+            if G.GAME.hands[context.scoring_name].level > 1 then
+                card.ability.extra.xmult =  card.ability.extra.xmult + card.ability.extra.xmult_gain
+                    return {
+                        message = 'Spaghettified!',
+                        level_up = -card.ability.extra.level
+                    }
+                end
+            end
         end
     end
 }
