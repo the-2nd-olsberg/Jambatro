@@ -3661,7 +3661,7 @@ SMODS.Joker {
     config = { extra = { repetitions = 1 } },
 
     calculate = function(self, card, context)
-        if context.repetition and context.cardarea == G.play and SMODS.has_enhancement then
+        if context.repetition and context.cardarea == G.play and context.other_card and context.other_card.config.center.key ~= "c_base" then
             return {
                 repetitions = card.ability.extra.repetitions
             }
@@ -4396,7 +4396,7 @@ SMODS.Consumable{
     },
     set = 'Tarot',
     atlas = 'jam_tarot',
-    pos = { x = 3, y = 0 },
+    pos = { x = 4, y = 0 },
     discovered = true,
 
     use = function(self, card, area, copier)
