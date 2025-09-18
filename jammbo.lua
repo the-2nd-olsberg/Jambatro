@@ -37,6 +37,30 @@ SMODS.ObjectType({
 	end,
 })
 
+SMODS.ObjectType({
+	key = "jam_buggies",
+	default = "c_jammbo_jam_fly",
+	cards = {},
+	inject = function(self)
+		SMODS.ObjectType.inject(self)
+	end,
+})
+
+--Types
+SMODS.ConsumableType {
+  object_type = "ConsumableType",
+  key = 'jam_bugs',
+  default = 'c_jammbo_jam_fly',
+  collection_rows = { 4,4 },
+  primary_colour = HEX("7164C6"),
+  secondary_colour = HEX("6F785A"),
+  loc_txt = {
+      collection = 'Bug Cards',
+      name = 'Bugs',
+      label = 'Bugs',
+      },
+  shop_rate = 0.2,
+}
 
 --Enhanced Cards
 SMODS.Enhancement {
@@ -82,30 +106,41 @@ SMODS.Enhancement {
     end
 }
 
--- SMODS.Enhancement {
---     key = 'jam_enlightened',
---     loc_txt = {
---         name = "Enlightened Card",
---         text = {
---             "Retriggers card",
---             '{C:attention}1{} time',
---         }
---     },
---     atlas = 'jam_enhancements',
---     pos = { x = 1, y = 0 },
---     config = {  },
---     loc_vars = function(self, info_queue, card)
---         return { vars = {  } }
---     end,
+SMODS.Enhancement {
+    key = 'jam_enlightened',
+    loc_txt = {
+        name = "Enlightened Card",
+        text = {
+            'Retrigger card {C:attention}2{} times',
+            '{C:green}#1# in #2#{} chance to',
+            '{C:attention}Unenlighten{} all',
+            'played {C:attention}Enlightened{} cards'
+        }
+    },
+    atlas = 'jam_enhancements',
+    pos = { x = 2, y = 0 },
+    config = { extra = { odds = 5 } },
+    loc_vars = function(self, info_queue, card)
+        local numerator, denominator = SMODS.get_probability_vars(card, 1, card.ability.extra.odds, 'enlightenment')
+        return { vars = { numerator, denominator } }
+    end,
 
---     calculate = function(self, card, context)
---         if context.repetition then
---             return {
---                 repetitions = 1
---             }
---         end
---     end,
--- }
+    calculate = function(self, card, context)
+        if context.repetition then
+            return {
+                repetitions = 2
+            }
+        end
+        if context.before and context.cardarea == G.play then
+            if SMODS.pseudorandom_probability(card, 'enlightenment', 1, card.ability.extra.odds) then
+                card:set_ability('c_base', nil, true)
+                return {
+                    message = 'Lost faith!'
+                }
+            end
+        end
+    end,
+}
 
 
 -- Jokers
@@ -2720,10 +2755,10 @@ SMODS.Joker {
 			end
 		end
 
-        if context.individual and context.cardarea == G.play and SMODS.has_enhancement(context.other_card, "m_jammbo_jam_mustard") then
+        if context.individual and context.cardarea == G.play and context.other_card and SMODS.has_enhancement(context.other_card, "m_jammbo_jam_mustard") then
             card.ability.extra.xmult = card.ability.extra.xmult + card.ability.extra.xmult_gain
             return {
-                message 'Upstard!'
+                message = 'Upstard!'
             }
         end
         
@@ -4272,7 +4307,7 @@ SMODS.Joker{
             'decrease played hand',
             'level by {C:attention}#3#',
             'and gain {X:red,C:white}X#5#{} Mult',
-            '{C:inactive}(Currently:{}{X:red,C:white} X#4#{} {C:inactive}Mult){}',
+            '{C:inactive}(Currently: {}{X:red,C:white} X#4#{} {C:inactive}Mult){}',
         }
     },
     blueprint_compat = true,
@@ -4296,13 +4331,126 @@ SMODS.Joker{
         if context. SMODS.pseudorandom_probability(card, 'spaceiscool', 1, card.ability.extra.odds) then
             if G.GAME.hands[context.scoring_name].level > 1 then
                 card.ability.extra.xmult =  card.ability.extra.xmult + card.ability.extra.xmult_gain
-                    return {
-                        message = 'Spaghettified!',
-                        level_up = -card.ability.extra.level
-                    }
+                return {
+                    message = 'Spaghettified!',
+                    level_up = -card.ability.extra.level
+                }
+            end
+        end
+    end
+}
+
+SMODS.Joker{
+    key = "jam_preacher",
+    loc_txt = {
+        name = {
+            'Preacher'
+        },
+        text = {
+            'Played {C:attention}Enlightened{}',
+            'cards give {C:red}+#3#{} Mult',
+            '{C:red}+#4#{} Mult for every',
+            '{C:attention}Enlightened{} card in the deck',
+            'All discarded {C:attention}face{}',
+            'cards become {C:attention}Enlightened{}',
+        }
+    },
+    blueprint_compat = true,
+    rarity = 2,
+    cost = 5,
+    discovered = true,
+    eternal_compat = true,
+    perishable_compat = false,
+    atlas = 'Jammbo',
+    pos = { x = 10, y = 6 },
+    pools = { ["Jambatro"] = true },
+
+    config = { extra = { odds = 5, mult = 1, mult_part = 3 } },
+
+    loc_vars = function(self, info_queue, card)
+        local numerator, denominator = SMODS.get_probability_vars(card, 1, card.ability.extra.odds, 'preacherjam')
+        return { vars = { numerator, denominator, card.ability.extra.mult, card.ability.extra.mult_part } }
+    end,
+
+    calculate = function(self, card, context)
+        if context.discard and not context.other_card.debuff and context.other_card:is_face() and not context.blueprint then
+            if context.other_card.config.center.key == "c_base" then
+                context.other_card:set_ability("m_jammbo_jam_enlightened", nil, true)
+                return {
+                    message = 'Welcome...'
+                }
+            end
+        end
+        if context.individual and context.cardarea == G.play and SMODS.has_enhancement(context.other_card, 'm_jammbo_jam_enlightened') then
+            local enlight_tally = 0
+            if G.playing_cards then
+                for _, playing_card in ipairs(G.playing_cards) do
+                    if SMODS.has_enhancement(playing_card, 'm_jammbo_jam_enlightened') then 
+                        enlight_tally = enlight_tally + 1 
+                    end
+                end
+            end
+            return {
+                mult = (card.ability.extra.mult_part * enlight_tally)
+            }
+        end
+    end,
+
+    update = function(self, card, dt)
+        local enlight_tally = 0
+        if G.playing_cards then
+            for _, playing_card in ipairs(G.playing_cards) do
+                if SMODS.has_enhancement(playing_card, 'm_jammbo_jam_enlightened') then 
+                    enlight_tally = enlight_tally + 1 
                 end
             end
         end
+        card.ability.extra.mult = (card.ability.extra.mult_part * enlight_tally)
+    end
+}
+
+SMODS.Joker {
+    key = 'jam_perfectionist',
+    loc_txt = {
+        name = {
+            'Hand Perfectionist'
+        },
+        text = {
+            '+#1# Hand Size',
+            '-#2# Hands',
+            '+#3# Discards'
+        }
+    },
+    blueprint_compat = true,
+    rarity = 3,
+    cost = 5,
+    discovered = true,
+    eternal_compat = true,
+    perishable_compat = false,
+    atlas = 'Jammbo',
+    pos = { x = 0, y = 6 },
+    pools = { ["Jambatro"] = true },
+
+    config = { extra = { h_size = 2, hands = 2, discards = 4 } },
+
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.h_size, card.ability.extra.hands, card.ability.extra.discards } }
+    end,
+
+    add_to_deck = function(self, card, from_debuff)
+        G.hand:change_size(card.ability.extra.h_size)
+        G.GAME.round_resets.discards = G.GAME.round_resets.discards + card.ability.extra.discards
+        ease_discard(card.ability.extra.discards)
+        G.GAME.round_resets.hands = G.GAME.round_resets.hands - card.ability.extra.hands
+        ease_hands_played(-card.ability.extra.hands)
+    end,
+
+    remove_from_deck = function(self, card, from_debuff)
+        G.hand:change_size(-card.ability.extra.h_size)
+        G.GAME.round_resets.discards = G.GAME.round_resets.discards - card.ability.extra.discards
+        ease_discard(-card.ability.extra.discards)
+        G.GAME.round_resets.hands = G.GAME.round_resets.hands + card.ability.extra.hands
+        ease_hands_played(card.ability.extra.hands)
     end
 }
 
@@ -4342,8 +4490,8 @@ SMODS.Consumable {
         },
         text = {
             "Enhances {C:attention}#1#{} selected",
-            "card into a",
-            "{C:attention}Mustard Card",
+            "card into",
+            "{C:attention}Mustard Cards",
         }
     },
     set = 'Tarot',
@@ -4408,3 +4556,70 @@ SMODS.Consumable{
         return G.jokers and #G.jokers.cards < G.jokers.config.card_limit
     end
 }
+
+SMODS.Consumable {
+    key = 'jam_church',
+    loc_txt = {
+        name = {
+            'Church'
+        },
+        text = {
+            "Enhances {C:attention}#1#{} selected",
+            "card into",
+            "{C:attention}Enlighhtenend Cards",
+        }
+    },
+    set = 'Tarot',
+    atlas = 'jam_tarot',
+    pos = { x = 3, y = 0 },
+    discovered = true,
+    config = { max_highlighted = 2, mod_conv = 'm_jammbo_jam_enlightened' },
+    loc_vars = function(self, info_queue, card)
+        info_queue[#info_queue + 1] = G.P_CENTERS[card.ability.mod_conv]
+        return { vars = { card.ability.max_highlighted } }
+    end,
+}
+
+SMODS.Consumable {
+    key = 'jam_caterpillar',
+    loc_txt = {
+        name = {
+            'Caterpillar'
+        },
+        text = {
+            'Destroys {C:attention}1{}',
+            'selected card',
+        }
+    },
+    set = 'jam_bugs',
+    atlas = 'jam_tarot',
+    pos = { x = 3, y = 0 },
+    discovered = true,
+    pools = { ["jam_buggies"] = true },
+    config = { max_highlighted = 1 },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.max_highlighted } }
+    end,
+    use = function(self, card, area, copier)
+        G.E_MANAGER:add_event(Event({
+            trigger = 'after',
+            delay = 0.4,
+            func = function()
+                play_sound('tarot1')
+                card:juice_up(0.3,1)
+                return true
+            end
+        }))
+        G.E_MANAGER:add_event(Event({
+            trigger = 'after',
+            delay = 0.2,
+            func = function()
+                SMODS.destroy_cards(G.hand.highlighted)
+                return true
+            end
+        }))
+        delay(0.3)
+    end,
+}
+
+--Booster Packs
