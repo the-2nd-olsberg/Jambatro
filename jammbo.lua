@@ -132,7 +132,7 @@ SMODS.Enhancement {
             }
         end
         if context.before and context.cardarea == G.play then
-            if SMODS.pseudorandom_probability(card, 'enlightenment', 1, card.ability.extra.odds) then
+            if SMODS.pseudorandom_probability(card, 'enlightenment', 1, card.ability.extra.odds) and has_enhancement(context.other_card, "m_jammbo_jam_enlightened") then
                 card:set_ability('c_base', nil, true)
                 return {
                     message = 'Lost faith!'
@@ -385,7 +385,7 @@ SMODS.Joker {
     loc_txt = {
         name = "Wasted Slot",
         text = {
-            '{{X:red,C:white}X1.02{} Mult if played hand',
+            '{X:red,C:white}X1.02{} Mult if played hand',
             'contains a {C:attention}High Card{}',
         }
     },
@@ -517,8 +517,8 @@ SMODS.Joker {
     loc_txt = {
         name = "The Inbetweener",
         text = {
-            'Every {C:attention}8{} in your deck',
-            'gives {C:red}+3{} Mult',
+            'Gives {C:red}+3{} Mult for',
+            'every {C:attention}8{} in your deck',
             '{C:inactive}(Currently:{}{C:red} +#2#{} {C:inactive}Mult){}',
         }
     },
@@ -679,7 +679,7 @@ SMODS.Joker {
     pos = { x = 1, y = 2 },
     pools = { ["Jambatro"] = true },
 
-    config = { extra = { mult = 0, mult_bonus = 5 } },
+    config = { extra = { mult = 0, mult_bonus = 6 } },
 
     loc_vars = function(self, info_queue, card)
         return { vars = { card.ability.extra.mult, card.ability.extra.mult_bonus } }
@@ -705,9 +705,7 @@ SMODS.Joker {
 SMODS.Joker {
     key = 'jam_speedyjoker',
     loc_txt = {
-        name = {
-            'Speedy Joker'
-        },
+        name = 'Speedy Joker',
         text = {
             'The faster you play your {C:attention}hand{},',
             'the better rank you get!',
@@ -842,10 +840,7 @@ SMODS.Joker {
 SMODS.Joker {
     key = 'jam_jokerstore',
     loc_txt = {
-        name = {
-            'Its a Joker Store!',
-            'I was buying Jokers!'
-        },
+        name = 'Its a Joker Store! I was buying Jokers!',
         text = {
             'Gains {C:red}+#2#{} Mult for every',
             '{C:attention}Joker{} bought in the {C:attention}Shop{}',
@@ -887,9 +882,7 @@ SMODS.Joker {
 SMODS.Joker{
     key = 'jam_corrupteddata',
     loc_txt = {
-        name = {
-            'Corrupted Data'
-        },
+        name = 'Corrupted Data',
         text = {
             'All played {C:attention}cards{}',
             'score a {C:green}random{} amount of Chips and',
@@ -926,9 +919,7 @@ SMODS.Joker{
 SMODS.Joker {
     key = 'jam_lookover',
     loc_txt = {
-        name = {
-            'Quick! Look Over There!'
-        },
+        name = 'Quick! Look Over There!',
         text = {
             'Swaps {C:red}Mult{} and {C:chips}Chips{}',
             '{C:inactive}(This currently doesnt',
@@ -966,9 +957,7 @@ SMODS.Joker {
 SMODS.Joker {
     key = 'jam_tnetannba',
     loc_txt = {
-        name = {
-            '0118 999 8819 9911 9725...3'
-        },
+        name = '0118 999 8819 9911 9725...3',
         text = {
             'Play each {C:attention}digit{} of the new number',
             'for the {C:attention}Emergency Services{} to earn',
@@ -1031,9 +1020,7 @@ SMODS.Joker {
 SMODS.Joker {
     key = 'jam_118',
     loc_txt = {
-        name = {
-            '118-118!'
-        },
+        name = '118-118!',
         text = {
             'If {C:attention}hand{} contains a {C:attention}Pair{} of {C:attention}Aces{}, {C:red}+#1#{} Mult',
             'If {C:attention}hand{} contains an {C:attention}8{}, {C:red}+#2#{} Mult',
@@ -1127,9 +1114,7 @@ SMODS.Joker {
 SMODS.Joker {
     key = 'jam_flexplay',
     loc_txt = {
-        name = {
-            'JokerPlay Rental'
-        },
+        name = 'JokerPlay Rental',
         text = {
             'Each scored card gains {C:red}+1{} Mult',
             '{C:attention}permenantly{}',
@@ -1168,9 +1153,7 @@ SMODS.Joker {
 SMODS.Joker {
     key = 'jam_fat_joker',
     loc_txt = {
-        name = {
-            'Fat Joker'
-        },
+        name = 'Fat Joker',
         text = {
             '{C:green}#1# in #2#{} chance of eating each',
             '{C:attention}played card{} and gaining {C:red}+#4#{} Mult',
@@ -1225,9 +1208,7 @@ SMODS.Joker {
 SMODS.Joker {
     key = 'jam_trolled',
     loc_txt = {
-        name = {
-            'Troll Joker'
-        },
+        name = 'Troll Joker',
         text = {
             'All played {C:attention}cards{} lose their Chip',
             'value after first play'
@@ -1271,9 +1252,7 @@ SMODS.Joker {
 SMODS.Joker {
     key = 'jam_groundhog',
     loc_txt = {
-        name = {
-            'Groundhog Day'
-        },
+        name = 'Groundhog Day',
         text = {
             'When cummulative {C:attention}Jokers{}',
             'reset, gains {C:red}+#2#{} Mult',
@@ -1451,9 +1430,7 @@ SMODS.Joker {
 SMODS.Joker {
     key = 'jam_f2p',
     loc_txt = {
-        name = {
-            'Free to Play'
-        },
+        name = 'Free to Play',
         text = {
             'Gains {C:red}+#2#{} Mult when {C:attention}shop{} exited',
             'without gaining or losing any {C:money}money{}',
@@ -1499,9 +1476,7 @@ SMODS.Joker {
 SMODS.Joker {
     key = 'jam_pcc',
     loc_txt = {
-        name = {
-            'Pembrokeshire County Council'
-        },
+        name = 'Pembrokeshire County Council',
         text = {
             'When {C:attention}Blind{} is selected, if the {C:attention}shop{} is active,',
             'gain {C:money}$10{} for every {C:attention}spectral card{} bought',
@@ -1527,9 +1502,7 @@ SMODS.Joker {
 SMODS.Joker {
     key = 'jam_magpie',
     loc_txt = {
-        name = {
-            'Magpie'
-        },
+        name = 'Magpie',
         text = {
             'When {C:attention}Blind{} is selected',
             '{C:green}#1# in #2#{} chance of stealing {C:money}$#3#{}',
@@ -1612,12 +1585,12 @@ SMODS.Joker {
 SMODS.Joker {
     key = 'jam_salesman',
     loc_txt = {
-        name = {
-            'Salesman'
-        },
+        name = 'Salesman',
         text = {
-            'Earn {C:money}$1{} for every {C:money}$2{} of profit from the',
-            'last {C:attention}shop{} visit at the end of the round'
+            'Earn {C:money}$1{} for every',
+            '{C:money}$2{} of profit from the',
+            'last {C:attention}shop{} visit',
+            'at the end of the round'
         }
     },
     blueprint_compat = false,
@@ -1658,9 +1631,7 @@ SMODS.Joker {
 SMODS.Joker {
     key = 'jam_crooked',
     loc_txt = {
-        name = {
-            'Crooked Joker'
-        },
+        name = 'Crooked Joker',
         text = {
             '{C:blue}+#1#{} Hand and lose {C:money}$#2#{}',
             'at the start of the round'
@@ -1676,7 +1647,7 @@ SMODS.Joker {
     pos = { x = 8, y = 3 },
     pools = { ["Jambatro"] = true },
 
-    config = { extra = { hands = 1, dollars = 4, activated = false } },
+    config = { extra = { hands = 1, dollars = 4 } },
 
     loc_vars = function(self, info_queue, card)
         return { vars = { card.ability.extra.hands, card.ability.extra.dollars } }
@@ -1684,11 +1655,6 @@ SMODS.Joker {
 
     calculate = function(self, card, context)
         if context.setting_blind and not context.blueprint then
-            if card.ability.extra.activated == false then
-                G.GAME.round_resets.hands = G.GAME.round_resets.hands + card.ability.extra.hands
-                ease_hands_played(card.ability.extra.hands)
-                card.ability.extra.activated = true
-            end
             G.GAME.dollars = G.GAME.dollars - card.ability.extra.dollars
             if G.GAME.dollars < 0 then
                 return {
@@ -1700,20 +1666,27 @@ SMODS.Joker {
             }
         end
         if context.selling_self and not context.blueprint then
-            G.GAME.round_resets.hands = G.GAME.round_resets.hands - card.ability.extra.hands
             return {
                 message = 'Just you wait...'
             }
         end
+    end,
+
+    add_to_deck = function(self, card, from_debuff)
+        G.GAME.round_resets.hands = G.GAME.round_resets.hands + card.ability.extra.hands
+        ease_hands_played(card.ability.extra.hands)
+    end,
+
+    remove_from_deck = function(self, card, from_debuff)
+        G.GAME.round_resets.hands = G.GAME.round_resets.hands - card.ability.extra.hands
+        ease_hands_played(-card.ability.extra.hands)
     end
 }
 
 SMODS.Joker {
     key = 'jam_stocks',
     loc_txt = {
-        name = {
-            'Stocks'
-        },
+        name = 'Stocks',
         text = {
             '{C:attention}Sell value{} changes randomly',
             'at the end of the round'
@@ -1753,9 +1726,7 @@ SMODS.Sound({key = "clang", path = "metallic-clang.mp3",})
 SMODS.Joker {
     key = 'jam_press',
     loc_txt = {
-        name = {
-            'Hydraulic Press'
-        },
+        name = 'Hydraulic Press',
         text = {
             'First {C:attention}Stone{} card in hand',
             'converted to {C:attention}Glass{} card'
@@ -1794,9 +1765,7 @@ SMODS.Joker {
 SMODS.Joker {
     key = 'jam_hormones',
     loc_txt = {
-        name = {
-            'Hormone Therapy'
-        },
+        name = 'Hormone Therapy',
         text = {
             '{C:green}#1# in #2#{} chance for',
             'each played {C:attention}King{} to turn into a {C:attention}Queen{}',
@@ -1847,9 +1816,7 @@ SMODS.Joker {
 SMODS.Joker {
     key = 'jam_rabbits',
     loc_txt = {
-        name = {
-            'Like Rabbits'
-        },
+        name = 'Like Rabbits',
         text = {
             'When a {C:attention}King{} and {C:attention}Queen{} are scored,',
             'creates a {C:attention}King{}, {C:attention}Queen{} or {C:attention}Jack{} with',
@@ -1888,7 +1855,7 @@ SMODS.Joker {
                 if card.ability.extra.mother == false then
                     card.ability.extra.mother = true
                     return {
-                        message = 'Mother'
+                        message = 'Mother!'
                     }
                 end
             end
@@ -1994,9 +1961,7 @@ SMODS.Joker {
 SMODS.Joker {
     key = 'jam_monochromatic',
     loc_txt = {
-        name = {
-            'Monochromatic Joker'
-        },
+        name = 'Monochromatic Joker',
         text = {
             'Debuffs all suits except for {C:attention}#1#{}',
             '{X:red,C:white}X#2#{} Mult',
@@ -2080,9 +2045,7 @@ SMODS.Sound({key = "Slow", path = "TG - James.mp3",})
 SMODS.Joker {
     key = 'jam_trinity',
     loc_txt = {
-        name = {
-            'The Holy Trinity'
-        },
+        name = 'The Holy Trinity',
         text = {
             'Current presenter: {C:attention}#1#{}',
             'Jezza: {C:attention}Face{} cards give {X:chips,C:white}X1.2{} Chips',
@@ -2218,9 +2181,7 @@ SMODS.Joker {
 SMODS.Joker {
     key = 'jam_santa',
     loc_txt = {
-        name = {
-            'Joker Christmas'
-        },
+        name = 'Joker Christmas',
         text = {
             'On {C:attention}Christmas Day{}, {X:red,C:white}X3{} Mult',
             '{C:inactive}Current date: #2#/#1#{}'
@@ -2291,9 +2252,7 @@ SMODS.Joker {
 SMODS.Joker {
     key = 'jam_angery',
     loc_txt = {
-        name = {
-            'Pissy Joker'
-        },
+        name = 'Pissy Joker',
         text = {
             'If 5 cards are {C:attention}played{}, destroys',
             'the last 2 {C:attention}scored{} cards'
@@ -2333,9 +2292,7 @@ SMODS.Joker {
 SMODS.Joker {
     key = 'jam_seagull',
     loc_txt = {
-        name = {
-            'Seagull'
-        },
+        name = 'Seagull',
         text = {
             '{C:green}#1# in #2#{} chance to steal up to {C:chips}-50{} Chips',
             'and gain {C:red}+#5#{} Mult',
@@ -2400,13 +2357,10 @@ SMODS.Joker {
 SMODS.Joker {
     key = 'jam_starwalker',
     loc_txt = {
-        name = {
-            'The Original      Star',
-            '      Walker'
-        },
+        name = 'The Original      Star   Walker',
         text = {
-            'Gives {C:chips}+100{} Chips', 
-            'or {C:red}+10{} Mult'
+            'Gives {C:chips}+200{} Chips', 
+            'or {C:red}+20{} Mult'
         }
     },
     blueprint_compat = true,
@@ -2430,11 +2384,11 @@ SMODS.Joker {
         if context.joker_main then
             if SMODS.pseudorandom_probability(card, "starwalker", 1, card.ability.extra.odds) then
                 return {
-                    mult = 10
+                    mult = 20
                 }
             else
                 return {
-                    chips = 100
+                    chips = 200
                 }
             end
         end
@@ -2444,9 +2398,7 @@ SMODS.Joker {
 SMODS.Joker {
     key = 'jam_thanos',
     loc_txt = {
-        name = {
-            'Thanos'
-        },
+        name = 'Thanos',
         text = {
             'Destroys all {C:attention}cards{} until {C:attention}deck{}',
             'size is {C:attention}#1#{} cards',
@@ -2501,10 +2453,7 @@ SMODS.Joker {
 SMODS.Joker {
     key = 'jam_eeffoc',
     loc_txt = {
-        name = {
-            'Its Eeffoc...',
-            'and its funny'
-        },
+        name = 'Its Eeffoc...',
         text = {
             'If {C:attention}straight{} is played',
             'backwards, {C:red}+13{} mult'
@@ -3011,7 +2960,8 @@ SMODS.Joker {
     loc_txt = {
         name = 'Jammbo TF2',
         text = {
-            'If hand score exceeds {C:attention}1709{}, earn {C:money}$6{}'
+            'If hand score exceeds',
+            '{C:attention}1709{}, earn {C:money}$6{}'
         }
     },
     blueprint_compat = true,
@@ -3125,9 +3075,12 @@ SMODS.Joker {
     loc_txt = {
         name = "Solar Panel",
         text = {
-            'Absorbs {C:attention}#2#%{} of all Mult when scored for {C:attention}#1#{} rounds',
-            'and scores stored Mult as {X:red,C:white}XMult{} on the final round',
-            '{C:inactive}(Currently: {}{X:red,C:white}X#3#{}{C:inactive} Mult){}'
+            'Absorbs {C:attention}#2#%{} of all Mult when',
+            'scored for {C:attention}#1#{} rounds',
+            'and scores stored Mult',
+            'as {X:red,C:white}XMult{} on the final round',
+            '{C:inactive}(Currently: {}{X:red,C:white}X#3#{}{C:inactive} Mult){}',
+            '{C:inactive}Always scores last{}'
 
         }
     },
@@ -3148,7 +3101,7 @@ SMODS.Joker {
     end,
 
     calculate = function(self, card, context)
-        if context.joker_main then
+        if context.final_scoring_step and not context.blueprint then
             if card.ability.extra.rounds > 0 then
                 card.ability.extra.absorb = mult / card.ability.extra.percent
                 card.ability.extra.mult = card.ability.extra.mult + card.ability.extra.absorb
@@ -3183,9 +3136,7 @@ SMODS.Joker {
 SMODS.Joker {
     key = 'jam_ascension',
     loc_txt = {
-        name = {
-            'Ascended Jimbo'
-        },
+        name = 'Ascended Jimbo',
         text = {
             '{X:red,C:white}X4{} Mult',
         }
@@ -3213,9 +3164,7 @@ SMODS.Joker {
 SMODS.Joker {
     key = 'jam_steak',
     loc_txt = {
-        name = {
-            'Steak'
-        },
+        name = 'Steak',
         text = {
             'Gains {C:red}+3{} Mult at the end of the round',
             'When Mult reaches {C:red}+21{}, lasts for 2 more rounds',
@@ -3270,9 +3219,7 @@ SMODS.Sound({key = "easy", path = "that_was_easy.mp3",})
 SMODS.Joker {
     key = 'jam_instawin',
     loc_txt = {
-        name = {
-            'Instant Win Button'
-        },
+        name = 'Instant Win Button',
         text = {
             '{C:attention}Destroys{} all scored {C:attention}3{}s',
             'If {C:red}penultimate{} hand of the round is a',
@@ -3288,7 +3235,7 @@ SMODS.Joker {
     eternal_compat = true,
     perishable_compat = true,
     atlas = 'Jammbo',
-    pos = { x = 1, y = 1 },
+    pos = { x = 11, y = 0 },
     pools = { ["Jambatro"] = true },
 
     config = { extra = { win = false, uses = 2 } },
@@ -3319,7 +3266,7 @@ SMODS.Joker {
             local neededscore = G.GAME.blind.chips - G.GAME.chips
             card.ability.extra.win = false
             card.ability.extra.uses = card.ability.extra.uses - 1
-            if G.GAME.dollars ~= 0 then
+            if G.GAME.dollars ~= 15 then
                 ease_dollars(-G.GAME.dollars, true)
             end
             return {
@@ -3332,9 +3279,7 @@ SMODS.Joker {
 SMODS.Joker {
     key = 'jam_swaws',
     loc_txt = {
-        name = {
-            'SwawS'
-        },
+        name = 'SwawS',
         text = {
             'If {C:attention}Two Pair{} is',
             'played mirrored, {C:red}+14{} Mult'
@@ -3364,12 +3309,11 @@ SMODS.Joker {
 SMODS.Joker {
     key = 'jam_picky',
     loc_txt = {
-        name = {
-            'Picky Eater'
-        },
+        name = 'Picky Eater',
         text = {
-            'Debuffs all {C:purple}Tarot{} cards, creates a random {C:blue}Spectral{}',
-            'card at the end of every {C:attention}Boss blind{}',
+            'Debuffs all {C:purple}Tarot{} cards,',
+            'creates a random {C:blue}Spectral{} card',
+            'at the end of every {C:attention}Boss blind{}',
             '{C:inactive}(Leaves a sour taste. All held',
             '{C:inactive}Tarot cards remain Debuffed)',
             '{C:inactive}(Must have room)'
@@ -3430,9 +3374,7 @@ SMODS.Joker {
 SMODS.Joker {
     key = "jam_diamondcards",
     loc_txt = {
-        name = {
-            'Diamond Dealer'
-        },
+        name = 'Diamond Dealer',
         text = {
             '{X:chips,C:white}X#1#{} Chips for',
             'each {C:attention}Diamond card{} in your deck',
@@ -3484,13 +3426,11 @@ SMODS.Joker {
 SMODS.Joker {
     key = "jam_discards",
     loc_txt = {
-        name = {
-            'Discard Master'
-        },
+        name = 'Discard Master',
         text = {
-            'Gain +#2# chips if you have no discards',
-            'and you play a High Card is played with',
-            '4 other unscored cards',
+            'Gain {C:chips}+#2#{} chips if you have no discards',
+            'and you play a {C:attention}High Card{} is played with',
+            '4 other {C:attention}unscored{} cards',
             '{C:inactive}(Currently: {}{C:chips}+#1#{} {C:inactive}Chips){}',
         }
     },
@@ -3529,11 +3469,9 @@ SMODS.Joker {
 SMODS.Joker {
     key = "jam_kings",
     loc_txt = {
-        name = {
-            'The King Will Come'
-        },
+        name = 'The King Will Come',
         text = {
-            'Retriggers all {C:attention}Kings',
+            'Retrigger all {C:attention}Kings',
         }
     },
     blueprint_compat = true,
@@ -3565,11 +3503,9 @@ SMODS.Joker {
 SMODS.Joker {
     key = "jam_jacking",
     loc_txt = {
-        name = {
-            'Jacking It'
-        },
+        name = 'Jacking It',
         text = {
-            'Retriggers all {C:attention}Jacks',
+            'Retrigger all {C:attention}Jacks',
         }
     },
     blueprint_compat = true,
@@ -3601,9 +3537,7 @@ SMODS.Joker {
 SMODS.Joker {
     key = "jam_lootbox",
     loc_txt = {
-        name = {
-            'Mann Co. Crate'
-        },
+        name = 'Mann Co. Crate',
         text = {
             'Every {C:money}purchase{} has a',
             '{C:green}#1# in #2#{} chance of',
@@ -3675,9 +3609,7 @@ SMODS.Joker {
 SMODS.Joker {
     key = "jam_duo",
     loc_txt = {
-        name = {
-            'Comedy Duo'
-        },
+        name = 'Comedy Duo',
         text = {
             'Retriggers all',
             'played {C:attention}Enhanced{} cards'
@@ -3707,9 +3639,7 @@ SMODS.Joker {
 SMODS.Joker {
     key = "jam_sploosh",
     loc_txt = {
-        name = {
-            'Sploosh'
-        },
+        name = 'Sploosh',
         text = {
             '{C:chips}+20{} Chips for every',
             '{C:attention}played{} but {C:attention}unscored{} card'
@@ -3737,13 +3667,11 @@ SMODS.Joker {
 SMODS.Joker {
     key = "jam_sweets",
     loc_txt = {
-        name = {
-            'Sweets Jar'
-        },
+        name = 'Sweets Jar',
         text = {
-            '+#1# Mult',
-            'loses -#3# Mult every round, refills',
-            'with #4# less max Mult after #5# rounds'
+            '{C:red}+#1#{} Mult',
+            'loses {C:red}-#3#{} Mult every round, {C:red}refills{}',
+            'with {C:red}#4#{} less max Mult after {C:red}#5#{} rounds'
         }
     },
     blueprint_compat = true,
@@ -3801,9 +3729,7 @@ SMODS.Joker {
 SMODS.Joker {
     key = "jam_wordle",
     loc_txt = {
-        name = {
-            'Cardle'
-        },
+        name = 'Cardle',
         text = {
             -- '#1# #2# #3# #4# #5#',
             '{s:2}{B:1,C:white}#6#{} {B:2,C:white}#7#{} {B:3,C:white}#8#{} {B:4,C:white}#9#{} {B:5,C:white}#10#{}{}',
@@ -4076,9 +4002,7 @@ SMODS.Joker {
 SMODS.Joker {
     key = "jam_autism",
     loc_txt = {
-        name = {
-            'Autistic Joker'
-        },
+        name = 'Autistic Joker',
         text = {
             '{X:red,C:white}X#1#{} Mult',
             'Gains {X:red,C:white}X#2#{} when',
@@ -4119,9 +4043,7 @@ SMODS.Joker {
 SMODS.Joker{
     key = "jam_jackpot",
     loc_txt = {
-        name = {
-            'Jackpot!'
-        },
+        name = 'Jackpot!',
         text = {
             'Played {C:attention}7{}s give {C:money}$#1#{}',
             'Discarded {C:attention}7{}s give {C:money}$#1#{}',
@@ -4175,9 +4097,7 @@ SMODS.Joker{
 SMODS.Joker{
     key = "jam_calendar",
     loc_txt = {
-        name = {
-            'Calendar'
-        },
+        name = 'Calendar',
         text = {
             '{C:red}+#1#{} Mult',
             '{C:chips}+#2#{} Chips',
@@ -4219,9 +4139,7 @@ SMODS.Joker{
 SMODS.Joker{
     key = "jam_clock",
     loc_txt = {
-        name = {
-            'Clock'
-        },
+        name = 'Clock',
         text = {
             '{C:chips}+#1##2#{} Chips',
             'Chips depend on',
@@ -4261,9 +4179,7 @@ SMODS.Joker{
 SMODS.Joker{
     key = "jam_lizzy",
     loc_txt = {
-        name = {
-            'Elizabeth I'
-        },
+        name = 'Elizabeth I',
         text = {
             '{C:green}#1# in #2#{} chance to',
             'destroy each played {C:attention}face{} card'
@@ -4299,9 +4215,7 @@ SMODS.Joker{
 SMODS.Joker{
     key = "jam_spaghet",
     loc_txt = {
-        name = {
-            'Spaghettification'
-        },
+        name = 'Spaghettification',
         text = {
             '{C:green}#1# in #2#{} chance to',
             'decrease played hand',
@@ -4343,16 +4257,14 @@ SMODS.Joker{
 SMODS.Joker{
     key = "jam_preacher",
     loc_txt = {
-        name = {
-            'Preacher'
-        },
+        name = 'Preacher',
         text = {
             'Played {C:attention}Enlightened{}',
-            'cards give {C:red}+#3#{} Mult',
-            '{C:red}+#4#{} Mult for every',
+            'cards give {C:red}+#4#{} Mult for every',
             '{C:attention}Enlightened{} card in the deck',
             'All discarded {C:attention}face{}',
             'cards become {C:attention}Enlightened{}',
+            '{C:inactive}(Currently:{}{C:red} +#3#{} {C:inactive}Mult){}',
         }
     },
     blueprint_compat = true,
@@ -4365,7 +4277,7 @@ SMODS.Joker{
     pos = { x = 10, y = 6 },
     pools = { ["Jambatro"] = true },
 
-    config = { extra = { odds = 5, mult = 1, mult_part = 3 } },
+    config = { extra = { odds = 5, mult = 0, mult_part = 3 } },
 
     loc_vars = function(self, info_queue, card)
         local numerator, denominator = SMODS.get_probability_vars(card, 1, card.ability.extra.odds, 'preacherjam')
@@ -4412,13 +4324,11 @@ SMODS.Joker{
 SMODS.Joker {
     key = 'jam_perfectionist',
     loc_txt = {
-        name = {
-            'Hand Perfectionist'
-        },
+        name = 'Hand Perfectionist',
         text = {
-            '+#1# Hand Size',
-            '-#2# Hands',
-            '+#3# Discards'
+            '{C:attention}+#1#{} Hand Size',
+            '{C:attention}-#2#{} Hands',
+            '{C:attention}+#3#{} Discards'
         }
     },
     blueprint_compat = true,
@@ -4462,9 +4372,7 @@ SMODS.Joker {
 SMODS.Consumable {
     key = 'jam_miner',
     loc_txt = {
-        name = {
-            'Miner'
-        },
+        name = 'Miner',
         text = {
             "Enhances {C:attention}#1#{} selected",
             "card into a",
@@ -4485,9 +4393,7 @@ SMODS.Consumable {
 SMODS.Consumable {
     key = 'jam_mango',
     loc_txt = {
-        name = {
-            'Mango'
-        },
+        name = 'Mango',
         text = {
             "Enhances {C:attention}#1#{} selected",
             "card into",
@@ -4508,9 +4414,7 @@ SMODS.Consumable {
 SMODS.Consumable {
     key = 'jam_misplace',
     loc_txt = {
-        name = {
-            'Misplaced Joker'
-        },
+        name = 'Misplaced Joker',
         text = {
             "{C:red}+4{} Mult",
         }
@@ -4533,9 +4437,7 @@ SMODS.Consumable {
 SMODS.Consumable{
     key = 'jam_jamgement',
     loc_txt = {
-        name = {
-            'Jamgement'
-        },
+        name = 'Jamgement',
         text = {
             "Creates a random",
             "{C:attention}Jambatro Joker{}",
@@ -4560,9 +4462,7 @@ SMODS.Consumable{
 SMODS.Consumable {
     key = 'jam_church',
     loc_txt = {
-        name = {
-            'Church'
-        },
+        name = 'Church',
         text = {
             "Enhances {C:attention}#1#{} selected",
             "card into",
@@ -4583,9 +4483,7 @@ SMODS.Consumable {
 SMODS.Consumable {
     key = 'jam_caterpillar',
     loc_txt = {
-        name = {
-            'Caterpillar'
-        },
+        name = 'Caterpillar',
         text = {
             'Destroys {C:attention}1{}',
             'selected card',
