@@ -132,7 +132,7 @@ SMODS.Enhancement {
             }
         end
         if context.before and context.cardarea == G.play then
-            if SMODS.pseudorandom_probability(card, 'enlightenment', 1, card.ability.extra.odds) and has_enhancement(context.other_card, "m_jammbo_jam_enlightened") then
+            if SMODS.pseudorandom_probability(card, 'enlightenment', 1, card.ability.extra.odds) then
                 card:set_ability('c_base', nil, true)
                 return {
                     message = 'Lost faith!'
@@ -1820,7 +1820,7 @@ SMODS.Joker {
         text = {
             'When a {C:attention}King{} and {C:attention}Queen{} are scored,',
             'creates a {C:attention}King{}, {C:attention}Queen{} or {C:attention}Jack{} with',
-            'a chance of a random {C:attention}enhancement{}'
+            'a random {C:attention}enhancement{}'
         }
     },
     blueprint_compat = true,
@@ -1864,8 +1864,15 @@ SMODS.Joker {
             card.ability.extra.father = false
             card.ability.extra.mother = false
             local chrank = pseudorandom('rabbits', 1, 7)
+            local cen_pool = {}
+            for _, enhancement_center in pairs(G.P_CENTER_POOLS["Enhanced"]) do
+                if enhancement_center.key ~= 'm_stone' and not enhancement_center.overrides_base_rank then
+                    cen_pool[#cen_pool + 1] = enhancement_center
+                end
+            end
+            local enhancement = pseudorandom_element(cen_pool, 'spe_card')
             if chrank == 1 or chrank == 2 then
-                local king = SMODS.create_card { set = "Playing Card", rank = "King", area = G.discard }
+                local king = SMODS.create_card { set = "Playing Card", rank = "King", area = G.discard, enhancement = enhancement.key }
                 G.playing_card = (G.playing_card and G.playing_card + 1) or 1
                 king.playing_card = G.playing_card
                 table.insert(G.playing_cards, king)
@@ -1892,7 +1899,7 @@ SMODS.Joker {
                 }
             end
             if chrank == 3 or chrank == 4 then
-                local queen = SMODS.create_card { set = "Playing Card", rank = "Queen", area = G.discard }
+                local queen = SMODS.create_card { set = "Playing Card", rank = "Queen", area = G.discard, enhancement = enhancement.key }
                 G.playing_card = (G.playing_card and G.playing_card + 1) or 1
                 queen.playing_card = G.playing_card
                 table.insert(G.playing_cards, queen)
@@ -1919,7 +1926,7 @@ SMODS.Joker {
                 }
             end
             if chrank == 5 or chrank == 6 then
-                local jack = SMODS.create_card { set = "Playing Card", rank = "Jack", area = G.discard }
+                local jack = SMODS.create_card { set = "Playing Card", rank = "Jack", area = G.discard, enhancement = enhancement.key }
                 G.playing_card = (G.playing_card and G.playing_card + 1) or 1
                 jack.playing_card = G.playing_card
                 table.insert(G.playing_cards, jack)
@@ -3221,7 +3228,7 @@ SMODS.Joker {
     loc_txt = {
         name = 'Instant Win Button',
         text = {
-            '{C:attention}Destroys{} all scored {C:attention}3{}s',
+            '{C:attention}Destroys{} all scored {C:attention}3s{}',
             'If {C:red}penultimate{} hand of the round is a',
             'single {C:attention}3{}, instantly {C:green}win the round',
             'and sets your {C:money}money{} to {C:attention}0',
@@ -4045,8 +4052,8 @@ SMODS.Joker{
     loc_txt = {
         name = 'Jackpot!',
         text = {
-            'Played {C:attention}7{}s give {C:money}$#1#{}',
-            'Discarded {C:attention}7{}s give {C:money}$#1#{}',
+            'Played {C:attention}7s{} give {C:money}$#1#{}',
+            'Discarded {C:attention}7s{} give {C:money}$#1#{}',
             '{C:money}Payout{} gains {C:money}+#2#{} when',
             'a {C:attention}7{} is added to your {C:attention}deck{}'
         }
@@ -4364,7 +4371,130 @@ SMODS.Joker {
     end
 }
 
+SMODS.Joker {
+    key = 'jam_top10',
+    loc_txt = {
+        name = 'Top 10s',
+        text = {
+            'All played {C:attention}10s{} are {C:attention}destroyed{}',
+            'adds a random {C:attention}enhanced face{} card',
+            'for every destoryed {C:attention}10{}'
+        }
+    },
+    blueprint_compat = true,
+    rarity = 2,
+    cost = 6,
+    discovered = true,
+    eternal_compat = true,
+    perishable_compat = false,
+    atlas = 'Jammbo',
+    pos = { x = 10, y = 6 },
+    pools = { ["Jambatro"] = true },
 
+    config = { extra = { destroyed10s = 0, destroying = false } },
+
+    calculate = function (self, card, context)
+        if context.destroy_card and context.scoring_hand and context.cardarea == G.play and context.destroy_card:get_id() == 10 and not context.blueprint then
+            card.ability.extra.destroying = true
+            card.ability.extra.destroyed10s = card.ability.extra.destroyed10s + 1
+            return {
+                remove = true
+            }
+        end
+        if (context.drawing_cards or (context.end_of_round and context.game_over == false and context.main_eval)) and card.ability.extra.destroying then
+            card.ability.extra.destroying = false
+            local chrank = pseudorandom('top10gamingwomenofalltime', 1, 3)
+            local cen_pool = {}
+            for _, enhancement_center in pairs(G.P_CENTER_POOLS["Enhanced"]) do
+                if enhancement_center.key ~= 'm_stone' and not enhancement_center.overrides_base_rank then
+                    cen_pool[#cen_pool + 1] = enhancement_center
+                end
+            end
+            local enhancement = pseudorandom_element(cen_pool, 'amonguspenisballs')
+            if chrank == 1 then
+                local king = SMODS.create_card { set = "Playing Card", rank = "King", area = G.discard, enhancement = enhancement.key }
+                G.playing_card = (G.playing_card and G.playing_card + 1) or 1
+                king.playing_card = G.playing_card
+                table.insert(G.playing_cards, king)
+
+                G.E_MANAGER:add_event(Event({
+                    func = function()
+                        king:start_materialize({ G.C.SECONDARY_SET.Enhanced })
+                        G.play:emplace(king)
+                        return true
+                    end
+                }))
+                return {
+                    message = 'Topped!',
+                    func = function()
+                        G.E_MANAGER:add_event(Event({
+                            func = function()
+                                G.deck.config.card_limit = G.deck.config.card_limit + 1
+                                return true
+                            end
+                        }))
+                        draw_card(G.play, G.deck, 90, 'up')
+                        SMODS.calculate_context({ playing_card_added = true, cards = { king } })
+                    end
+                }
+            end
+            if chrank == 2 then
+                local queen = SMODS.create_card { set = "Playing Card", rank = "Queen", area = G.discard, enhancement = enhancement.key }
+                G.playing_card = (G.playing_card and G.playing_card + 1) or 1
+                queen.playing_card = G.playing_card
+                table.insert(G.playing_cards, queen)
+
+                G.E_MANAGER:add_event(Event({
+                    func = function()
+                        queen:start_materialize({ G.C.SECONDARY_SET.Enhanced })
+                        G.play:emplace(queen)
+                        return true
+                    end
+                }))
+                return {
+                    message = 'Topped!',
+                    func = function()
+                        G.E_MANAGER:add_event(Event({
+                            func = function()
+                                G.deck.config.card_limit = G.deck.config.card_limit + 1
+                                return true
+                            end
+                        }))
+                        draw_card(G.play, G.deck, 90, 'up')
+                        SMODS.calculate_context({ playing_card_added = true, cards = { queen } })
+                    end
+                }
+            end
+            if chrank == 3 then
+                local jack = SMODS.create_card { set = "Playing Card", rank = "Jack", area = G.discard, enhancement = enhancement.key }
+                G.playing_card = (G.playing_card and G.playing_card + 1) or 1
+                jack.playing_card = G.playing_card
+                table.insert(G.playing_cards, jack)
+
+                G.E_MANAGER:add_event(Event({
+                    func = function()
+                        jack:start_materialize({ G.C.SECONDARY_SET.Enhanced })
+                        G.play:emplace(jack)
+                        return true
+                    end
+                }))
+                return {
+                    message = 'Topped!',
+                    func = function()
+                        G.E_MANAGER:add_event(Event({
+                            func = function()
+                                G.deck.config.card_limit = G.deck.config.card_limit + 1
+                                return true
+                            end
+                        }))
+                        draw_card(G.play, G.deck, 90, 'up')
+                        SMODS.calculate_context({ playing_card_added = true, cards = { jack } })
+                    end
+                }
+            end
+        end
+    end
+}
 
 
 
