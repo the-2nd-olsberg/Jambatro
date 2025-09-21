@@ -27,6 +27,13 @@ SMODS.Atlas {
     py = 95
 }
 
+SMODS.Atlas {
+    key = 'jam_bugs',
+    path = 'bugs.png',
+    px = 65,
+    py = 95
+}
+
 --Pools
 SMODS.ObjectType({
 	key = "Jambatro",
@@ -4054,7 +4061,7 @@ SMODS.Joker{
         text = {
             'Played {C:attention}7s{} give {C:money}$#1#{}',
             'Discarded {C:attention}7s{} give {C:money}$#1#{}',
-            '{C:money}Payout{} gains {C:money}+#2#{} when',
+            '{C:money}Payout{} gains {C:money}+$#2#{} when',
             'a {C:attention}7{} is added to your {C:attention}deck{}'
         }
     },
@@ -4241,7 +4248,7 @@ SMODS.Joker{
     pos = { x = 9, y = 6 },
     pools = { ["Jambatro"] = true },
 
-    config = { extra = { odds = 5, level = 2, xmult = 1, xmult_gain = 0.3 } },
+    config = { extra = { odds = 5, level = 2, xmult = 1, xmult_gain = 0.7 } },
 
     loc_vars = function(self, info_queue, card)
         local numerator, denominator = SMODS.get_probability_vars(card, 1, card.ability.extra.odds, 'spaceiscool')
@@ -4281,7 +4288,7 @@ SMODS.Joker{
     eternal_compat = true,
     perishable_compat = false,
     atlas = 'Jammbo',
-    pos = { x = 10, y = 6 },
+    pos = { x = 11, y = 3 },
     pools = { ["Jambatro"] = true },
 
     config = { extra = { odds = 5, mult = 0, mult_part = 3 } },
@@ -4348,7 +4355,7 @@ SMODS.Joker {
     pos = { x = 0, y = 6 },
     pools = { ["Jambatro"] = true },
 
-    config = { extra = { h_size = 2, hands = 2, discards = 4 } },
+    config = { extra = { h_size = 2, hands = 2, discards = 2 } },
 
     loc_vars = function(self, info_queue, card)
         return { vars = { card.ability.extra.h_size, card.ability.extra.hands, card.ability.extra.discards } }
@@ -4376,9 +4383,10 @@ SMODS.Joker {
     loc_txt = {
         name = 'Top 10s',
         text = {
-            'All played {C:attention}10s{} are {C:attention}destroyed{}',
+            'All played {C:attention}10s{} are {C:attention}destroyed{},',
             'adds a random {C:attention}enhanced face{} card',
-            'for every destoryed {C:attention}10{}'
+            'for every destoryed {C:attention}10{} during the {C:attention}last{}',
+            '{C:attention}round{} at start of the {C:attention}next round{}'
         }
     },
     blueprint_compat = true,
@@ -4393,7 +4401,32 @@ SMODS.Joker {
 
     config = { extra = { destroyed10s = 0, destroying = false } },
 
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.destroyed10s } }
+    end,
+
     calculate = function (self, card, context)
+        if context.setting_blind then
+            for i = 1, card.ability.extra.destroyed10s do
+                local cen_pool = {}
+                for _, enhancement_center in pairs(G.P_CENTER_POOLS["Enhanced"]) do
+                    if enhancement_center.key ~= 'm_stone' and not enhancement_center.overrides_base_rank then
+                        cen_pool[#cen_pool + 1] = enhancement_center
+                    end
+                end
+                local enhancement = pseudorandom_element(cen_pool, 'spe_card')
+                local ranks = {"King", "Queen", "Jack"}
+                local stone_card = SMODS.add_card { set = "Base", rank = ranks[math.random(1,3)], enhancement = enhancement.key, area = G.deck }
+                func = function()
+                    SMODS.calculate_context({ playing_card_added = true, cards = { stone_card } })
+                end
+            end
+            if card.ability.extra.destroyed10s > 0 then
+                SMODS.calculate_effect({message = "Topped!"}, card)
+            end
+            card.ability.extra.destroyed10s = 0
+            card.ability.extra.destroying = false
+        end
         if context.destroy_card and context.scoring_hand and context.cardarea == G.play and context.destroy_card:get_id() == 10 and not context.blueprint then
             card.ability.extra.destroying = true
             card.ability.extra.destroyed10s = card.ability.extra.destroyed10s + 1
@@ -4401,101 +4434,120 @@ SMODS.Joker {
                 remove = true
             }
         end
-        if (context.drawing_cards or (context.end_of_round and context.game_over == false and context.main_eval)) and card.ability.extra.destroying then
-            card.ability.extra.destroying = false
-            local chrank = pseudorandom('top10gamingwomenofalltime', 1, 3)
-            local cen_pool = {}
-            for _, enhancement_center in pairs(G.P_CENTER_POOLS["Enhanced"]) do
-                if enhancement_center.key ~= 'm_stone' and not enhancement_center.overrides_base_rank then
-                    cen_pool[#cen_pool + 1] = enhancement_center
+    end
+}
+
+SMODS.Joker {
+    key = 'jam_collection',
+    loc_txt = {
+        name = 'Collection Plate',
+        text = {
+            'Earn {C:money}$1{} at the end',
+            'of the round for',
+            'every 2 {C:attention}Enlightened',
+            'Cards in your deck',
+            '{C:inactive}(Currently:{}{C:money} $#1#{} {C:inactive}Mult){}',
+        }
+    },
+    blueprint_compat = true,
+    rarity = 2,
+    cost = 6,
+    discovered = true,
+    eternal_compat = true,
+    perishable_compat = false,
+    atlas = 'Jammbo',
+    pos = { x = 11, y = 6 },
+    pools = { ["Jambatro"] = true },
+
+    config = { extra = { dollarinos = 0 } },
+
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.dollarinos } }
+    end,
+
+    calc_dollar_bonus = function(self, card)
+        return card.ability.extra.dollarinos
+    end,
+
+    update = function(self, card, dt)
+        local enlight_tally = 0
+        if G.playing_cards then
+            for _, playing_card in ipairs(G.playing_cards) do
+                if SMODS.has_enhancement(playing_card, 'm_jammbo_jam_enlightened') then 
+                    enlight_tally = enlight_tally + 1 
                 end
             end
-            local enhancement = pseudorandom_element(cen_pool, 'amonguspenisballs')
-            if chrank == 1 then
-                local king = SMODS.create_card { set = "Playing Card", rank = "King", area = G.discard, enhancement = enhancement.key }
-                G.playing_card = (G.playing_card and G.playing_card + 1) or 1
-                king.playing_card = G.playing_card
-                table.insert(G.playing_cards, king)
+        end
+        card.ability.extra.dollarinos = math.floor(enlight_tally/2)
+    end,
 
-                G.E_MANAGER:add_event(Event({
-                    func = function()
-                        king:start_materialize({ G.C.SECONDARY_SET.Enhanced })
-                        G.play:emplace(king)
-                        return true
-                    end
-                }))
-                return {
-                    message = 'Topped!',
-                    func = function()
-                        G.E_MANAGER:add_event(Event({
-                            func = function()
-                                G.deck.config.card_limit = G.deck.config.card_limit + 1
-                                return true
-                            end
-                        }))
-                        draw_card(G.play, G.deck, 90, 'up')
-                        SMODS.calculate_context({ playing_card_added = true, cards = { king } })
-                    end
-                }
+    in_pool = function(self, args)
+        for _, playing_card in ipairs(G.playing_cards or {}) do
+            if SMODS.has_enhancement(playing_card, 'm_jammbo_jam_enlightened') then
+                return true
             end
-            if chrank == 2 then
-                local queen = SMODS.create_card { set = "Playing Card", rank = "Queen", area = G.discard, enhancement = enhancement.key }
-                G.playing_card = (G.playing_card and G.playing_card + 1) or 1
-                queen.playing_card = G.playing_card
-                table.insert(G.playing_cards, queen)
+        end
+        return false
+    end
+}
 
-                G.E_MANAGER:add_event(Event({
-                    func = function()
-                        queen:start_materialize({ G.C.SECONDARY_SET.Enhanced })
-                        G.play:emplace(queen)
-                        return true
-                    end
-                }))
-                return {
-                    message = 'Topped!',
-                    func = function()
-                        G.E_MANAGER:add_event(Event({
-                            func = function()
-                                G.deck.config.card_limit = G.deck.config.card_limit + 1
-                                return true
-                            end
-                        }))
-                        draw_card(G.play, G.deck, 90, 'up')
-                        SMODS.calculate_context({ playing_card_added = true, cards = { queen } })
-                    end
-                }
-            end
-            if chrank == 3 then
-                local jack = SMODS.create_card { set = "Playing Card", rank = "Jack", area = G.discard, enhancement = enhancement.key }
-                G.playing_card = (G.playing_card and G.playing_card + 1) or 1
-                jack.playing_card = G.playing_card
-                table.insert(G.playing_cards, jack)
+SMODS.Joker {
+    key = 'jam_gem',
+    loc_txt = {
+        name = "Gem Joker",
+        text = {
+            'Gives {C:money}$#1#{} at the',
+            'end of every {C:attention}boss blind'
+        }
+    },
+    blueprint_compat = false,
+    rarity = 2,
+    cost = 6,
+    discovered = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    atlas = 'Jammbo',
+    pos = { x = 11, y = 5 },
+    pools = { ["Jambatro"] = true },
 
-                G.E_MANAGER:add_event(Event({
-                    func = function()
-                        jack:start_materialize({ G.C.SECONDARY_SET.Enhanced })
-                        G.play:emplace(jack)
-                        return true
-                    end
-                }))
-                return {
-                    message = 'Topped!',
-                    func = function()
-                        G.E_MANAGER:add_event(Event({
-                            func = function()
-                                G.deck.config.card_limit = G.deck.config.card_limit + 1
-                                return true
-                            end
-                        }))
-                        draw_card(G.play, G.deck, 90, 'up')
-                        SMODS.calculate_context({ playing_card_added = true, cards = { jack } })
-                    end
-                }
-            end
+    config = { extra = { dollars = 16 } },
+
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.dollars } }
+    end,
+    calc_dollar_bonus = function(self, card)
+        if G.GAME.blind.boss then
+            return card.ability.extra.dollars
         end
     end
 }
 
+SMODS.Joker {
+    key = 'jam_remaster',
+    loc_txt = {
+        name = 'Remastered Joker',
+        text = {
+            '{C:red}+7{} Mult',
+        }
+    },
+    blueprint_compat = true,
+    rarity = 1,
+    cost = 4,
+    discovered = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    atlas = 'Jammbo',
+    pos = { x = 11, y = 4 },
+    pools = { ["Jambatro"] = true },
+
+    calculate = function(self, card, context)
+        if context.joker_main then
+            return {
+                mult = 7
+            }
+        end
+    end
+}
 
 
 --Consumables
@@ -4601,7 +4653,7 @@ SMODS.Consumable {
     },
     set = 'Tarot',
     atlas = 'jam_tarot',
-    pos = { x = 3, y = 0 },
+    pos = { x = 5, y = 0 },
     discovered = true,
     config = { max_highlighted = 2, mod_conv = 'm_jammbo_jam_enlightened' },
     loc_vars = function(self, info_queue, card)
@@ -4620,8 +4672,8 @@ SMODS.Consumable {
         }
     },
     set = 'jam_bugs',
-    atlas = 'jam_tarot',
-    pos = { x = 3, y = 0 },
+    atlas = 'jam_bugs',
+    pos = { x = 0, y = 0 },
     discovered = true,
     pools = { ["jam_buggies"] = true },
     config = { max_highlighted = 1 },
