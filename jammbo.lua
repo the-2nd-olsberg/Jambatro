@@ -34,6 +34,13 @@ SMODS.Atlas {
     py = 95
 }
 
+SMODS.Atlas {
+    key = 'jam_boosters',
+    path = 'jamboosters.png',
+    px = 71,
+    py = 95
+}
+
 --Pools
 SMODS.ObjectType({
 	key = "Jambatro",
@@ -847,10 +854,10 @@ SMODS.Joker {
 SMODS.Joker {
     key = 'jam_jokerstore',
     loc_txt = {
-        name = 'Its a Joker Store! I was buying Jokers!',
+        name = 'Its a Card Store! I was buying Cards!',
         text = {
             'Gains {C:red}+#2#{} Mult for every',
-            '{C:attention}Joker{} bought in the {C:attention}Shop{}',
+            '{C:attention}Card{} bought in the {C:attention}Shop{}',
             '{C:inactive}(Currently: {}{C:red}+#1#{}{C:inactive} Mult){}',
             '{C:inactive}Does not include Booster Packs{}'
         }
@@ -872,7 +879,7 @@ SMODS.Joker {
     end,
 
     calculate = function(self, card, context)
-        if context.buying_card and context.card.ability.set == "Joker" then
+        if context.buying_card and not context.blueprint then
             card.ability.extra.mult = card.ability.extra.mult + card.ability.extra.mult_bonus
             return {
                 message = 'Doh!',
@@ -4383,10 +4390,12 @@ SMODS.Joker {
     loc_txt = {
         name = 'Top 10s',
         text = {
-            'All played {C:attention}10s{} are {C:attention}destroyed{},',
-            'adds a random {C:attention}enhanced face{} card',
-            'for every destoryed {C:attention}10{} during the {C:attention}last{}',
-            '{C:attention}round{} at start of the {C:attention}next round{}'
+            'Destroys all played {C:attention}10s',
+            'Recieve an {C:attention}Enhanced face{} card',
+            'for each destroyed {C:attention}10{} at the',
+            'start of the {C:attention}next round',
+            '{C:inactive}({}{C:attention}#1#{} {C:inactive}10s destroyed this round){}',
+            '{C:inactive}(Credits to @codifyd for initial idea and art)'
         }
     },
     blueprint_compat = true,
@@ -4428,11 +4437,18 @@ SMODS.Joker {
             card.ability.extra.destroying = false
         end
         if context.destroy_card and context.scoring_hand and context.cardarea == G.play and context.destroy_card:get_id() == 10 and not context.blueprint then
-            card.ability.extra.destroying = true
-            card.ability.extra.destroyed10s = card.ability.extra.destroyed10s + 1
             return {
                 remove = true
             }
+        end
+        if context.remove_playing_cards and not context.blueprint then
+            for i = 1, #context.removed do
+                if context.removed[i]:get_id() == 10 then
+                    card.ability.extra.destroying = true
+                    card.ability.extra.destroyed10s = card.ability.extra.destroyed10s + 1
+                    SMODS.calculate_effect({message = "+1"}, card)
+                end
+            end
         end
     end
 }
@@ -4446,7 +4462,7 @@ SMODS.Joker {
             'of the round for',
             'every 2 {C:attention}Enlightened',
             'Cards in your deck',
-            '{C:inactive}(Currently:{}{C:money} $#1#{} {C:inactive}Mult){}',
+            '{C:inactive}(Currently:{}{C:money} $#1#{}{C:inactive}){}',
         }
     },
     blueprint_compat = true,
@@ -4549,6 +4565,156 @@ SMODS.Joker {
     end
 }
 
+SMODS.Joker {
+    key = 'jam_boggy',
+    loc_txt = {
+        name = 'Boggy',
+        text = {
+            'Gains {C:chips}+#1#{} Chips when',
+            'a card is {C:attention}destroyed',
+            '{C:inactive}(Currently:{}{C:chips} +#2#{} {C:inactive}Chips){}',
+        }
+    },
+    blueprint_compat = true,
+    rarity = 1,
+    cost = 5,
+    discovered = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    atlas = 'Jammbo',
+    pos = { x = 10, y = 6 },
+    pools = { ["Jambatro"] = true },
+
+    config = { extra = { chips = 0, chips_gain = 8 } },
+
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.chips_gain, card.ability.extra.chips } }
+    end,
+
+    calculate = function(self, card, context)
+        if context.remove_playing_cards and not context.blueprint then
+            for i = 1, #context.removed do
+                card.ability.extra.chips = card.ability.extra.chips + card.ability.extra.chips_gain
+                SMODS.calculate_effect({message = "Upgrade!"}, card)
+            end
+        end
+        if context.joker_main then
+            return {
+                chips = card.ability.extra.chips
+            }
+        end
+    end
+}
+
+SMODS.Joker {
+    key = 'jam_crusher',
+    loc_txt = {
+        name = 'Candy Crusher',
+        text = {
+            '{C:red}+#1#{} Mult for each matching',
+            'card over a {C:attention}Pair',
+            'Creates a random {C:attention}enhanced{} card if',
+            'hand contains a {C:attention}Four of a Kind',
+            'Creates a {C:blue}Spectral{} card',
+            'if hand is a {C:attention}Flush Five',
+            '{C:inactive}(Must have room){}',
+        }
+    },
+    blueprint_compat = true,
+    rarity = 2,
+    cost = 7,
+    discovered = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    atlas = 'Jammbo',
+    pos = { x = 10, y = 6 },
+    pools = { ["Jambatro"] = true },
+
+    config = { extra = { mult = 8, making_card = false, type_3 = 'Three of a Kind', type_4 = 'Four of a Kind' } },
+
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.mult, } }
+    end,
+    
+    calculate = function(self, card, context)
+        if context.joker_main then
+            if context.scoring_name == 'Five of a Kind' or context.scoring_name == 'Flush Five' then
+                card.ability.extra.making_card = true
+                if context.scoring_name == 'Flush Five' and #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit then
+                    G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
+                    G.E_MANAGER:add_event(Event({
+                        func = (function()
+                            G.E_MANAGER:add_event(Event({
+                                func = function()
+                                    SMODS.add_card {
+                                        set = 'Spectral',
+                                    }
+                                    G.GAME.consumeable_buffer = 0
+                                    return true
+                                end
+                            }))
+                            SMODS.calculate_effect({message = "Tasty!"}, card)
+                            card.ability.extra.yoinked = false
+                            return true
+                        end)
+                    }))
+                    return nil, true
+                    end
+                return {
+                    mult = card.ability.extra.mult * 3
+                }
+            end
+            if next(context.poker_hands[card.ability.extra.type_4]) then
+                card.ability.extra.making_card = true
+                return {
+                    mult = card.ability.extra.mult * 2
+                }
+            end
+            if next(context.poker_hands[card.ability.extra.type_3]) then
+                return {
+                    mult = card.ability.extra.mult
+                }
+            end
+        end
+        if (context.drawing_cards or (context.end_of_round and context.game_over == false and context.main_eval)) and card.ability.extra.making_card then
+            card.ability.extra.making_card =  false
+            local cen_pool = {}
+            for _, enhancement_center in pairs(G.P_CENTER_POOLS["Enhanced"]) do
+                cen_pool[#cen_pool + 1] = enhancement_center
+            end
+            local enhancement = pseudorandom_element(cen_pool, 'spe_card')
+            local king = SMODS.create_card { set = "Playing Card", area = G.discard, enhancement = enhancement.key }
+                G.playing_card = (G.playing_card and G.playing_card + 1) or 1
+                king.playing_card = G.playing_card
+                table.insert(G.playing_cards, king)
+
+                G.E_MANAGER:add_event(Event({
+                    func = function()
+                        king:start_materialize({ G.C.SECONDARY_SET.Enhanced })
+                        G.play:emplace(king)
+                        return true
+                    end
+                }))
+                return {
+                    message = 'Juicy!',
+                    func = function()
+                        G.E_MANAGER:add_event(Event({
+                            func = function()
+                                G.deck.config.card_limit = G.deck.config.card_limit + 1
+                                return true
+                            end
+                        }))
+                        draw_card(G.play, G.deck, 90, 'up')
+                        SMODS.calculate_context({ playing_card_added = true, cards = { king } })
+                    end
+                }
+        end
+    end
+}
+
+
+
+
 
 --Consumables
 SMODS.Consumable {
@@ -4623,7 +4789,7 @@ SMODS.Consumable{
         text = {
             "Creates a random",
             "{C:attention}Jambatro Joker{}",
-            "{C:inactive}(must have room){}",
+            "{C:inactive}(Must have room){}",
         }
     },
     set = 'Tarot',
@@ -4702,4 +4868,119 @@ SMODS.Consumable {
     end,
 }
 
+SMODS.Consumable {
+    key = 'jam_ant',
+    loc_txt = {
+        name = 'Ant',
+        text = {
+            'Gives the card on the right',
+            'half of the chips from the the 2',
+            'cards on the left',
+            '{C:inactive}(Credits to @codifyd for idea)'
+        }
+    },
+    set = 'jam_bugs',
+    atlas = 'jam_bugs',
+    pos = { x = 1, y = 0 },
+    discovered = true,
+    pools = { ["jam_buggies"] = true },
+    config = { max_highlighted = 3, min_highlighted = 3 },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.max_highlighted } }
+    end,
+    use = function(self, card, area, copier)
+        G.E_MANAGER:add_event(Event({
+            trigger = 'after',
+            delay = 0.4,
+            func = function()
+                play_sound('tarot1')
+                card:juice_up(0.3, 0.5)
+                return true
+            end
+        }))
+
+        local card2rank = G.hand.highlighted[2]:get_id()
+        local card3rank = G.hand.highlighted[3]:get_id()
+
+        if card2rank > 10 then
+            card2rank = 10
+        end
+        if card3rank > 10 then
+            card3rank = 10
+        end
+
+        local card1chips = 0
+        local card2chips = (G.hand.highlighted[2].ability.perma_bonus or 0) + card2rank
+        local card3chips = (G.hand.highlighted[3].ability.perma_bonus or 0) + card3rank
+
+        G.hand.highlighted[1].ability.perma_bonus = (G.hand.highlighted[1].ability.perma_bonus or 0) + ((card2chips + card3chips)/2)
+        G.hand.highlighted[2].ability.perma_bonus = (G.hand.highlighted[2].ability.perma_bonus or 0) + -(card2chips/2)
+        G.hand.highlighted[3].ability.perma_bonus = (G.hand.highlighted[3].ability.perma_bonus or 0) + -(card3chips/2)
+
+        SMODS.calculate_effect({message = "Transfer!"}, card)
+
+        G.E_MANAGER:add_event(Event({
+            trigger = 'after',
+            delay = 0.2,
+            func = function()
+                G.hand:unhighlight_all()
+                return true
+            end
+        }))
+        delay(0.5)
+    end
+}
+
+
+
+
 --Booster Packs
+SMODS.Booster {
+    key = 'jam_booster_1',
+    loc_txt = {
+        name = 'Jammbo Pack',
+        text = {
+            'Choose {C:attention}1{} of',
+            '{C:attention}2{} {C:red}Jambatro{} Jokers'
+        },
+        group_name = 'Jambatro??'
+    },
+    atlas = 'jam_boosters',
+    pos = { x = 0, y = 0 },
+    draw_hand = false,
+    cost = 5,
+    discovered = true,
+    weight = 7,
+    pools = {
+        ["Jambatro"] = true
+    },
+    config = { extra = 2, choose = 1 },
+    create_card = function(self, card)
+        return {set = "Jambatro", area = G.pack_cards, skip_materialize = true, soulable = false, key_append = "jammbo"}
+    end,
+}
+
+SMODS.Booster {
+    key = 'jam_booster_2',
+    loc_txt = {
+        name = 'Jumbo Jammbo Pack',
+        text = {
+            'Choose {C:attention}1{} of',
+            '{C:attention}5{} {C:red}Jambatro{} Jokers'
+        },
+        group_name = 'Jambatro??'
+    },
+    atlas = 'jam_boosters',
+    pos = { x = 1, y = 0 },
+    draw_hand = false,
+    cost = 5,
+    discovered = true,
+    weight = 7,
+    pools = {
+        ["Jambatro"] = true
+    },
+    config = { extra = 5, choose = 1 },
+    create_card = function(self, card)
+        return {set = "Jambatro", area = G.pack_cards, skip_materialize = true, soulable = false, key_append = "jammbo"}
+    end,
+}
