@@ -41,6 +41,13 @@ SMODS.Atlas {
     py = 95
 }
 
+SMODS.Atlas {
+    key = 'jam_spectral',
+    path = 'jamspectral.png',
+    px = 65,
+    py = 95
+}
+
 --Pools
 SMODS.ObjectType({
 	key = "Jambatro",
@@ -59,6 +66,16 @@ SMODS.ObjectType({
 		SMODS.ObjectType.inject(self)
 	end,
 })
+
+SMODS.ObjectType({
+	key = "Jamboosters",
+	default = "p_jammbo_jam_booster_1",
+	cards = {},
+	inject = function(self)
+		SMODS.ObjectType.inject(self)
+	end,
+})
+
 
 --Types
 SMODS.ConsumableType {
@@ -3287,9 +3304,7 @@ SMODS.Joker {
             local neededscore = G.GAME.blind.chips - G.GAME.chips
             card.ability.extra.win = false
             card.ability.extra.uses = card.ability.extra.uses - 1
-            if G.GAME.dollars ~= 15 then
-                ease_dollars(-G.GAME.dollars, true)
-            end
+            G.GAME.dollars = 0
             return {
                 chips = (( neededscore / currentmult ) - currentchips) + 2
             }
@@ -4255,7 +4270,7 @@ SMODS.Joker{
     pos = { x = 9, y = 6 },
     pools = { ["Jambatro"] = true },
 
-    config = { extra = { odds = 5, level = 2, xmult = 1, xmult_gain = 0.7 } },
+    config = { extra = { odds = 4, level = 1, xmult = 1, xmult_gain = 0.6 } },
 
     loc_vars = function(self, info_queue, card)
         local numerator, denominator = SMODS.get_probability_vars(card, 1, card.ability.extra.odds, 'spaceiscool')
@@ -4263,7 +4278,7 @@ SMODS.Joker{
     end,
 
     calculate = function(self, card, context)
-        if context. SMODS.pseudorandom_probability(card, 'spaceiscool', 1, card.ability.extra.odds) then
+        if context.before and SMODS.pseudorandom_probability(card, 'spaceiscool', 1, card.ability.extra.odds) and not context.blueprint then
             if G.GAME.hands[context.scoring_name].level > 1 then
                 card.ability.extra.xmult =  card.ability.extra.xmult + card.ability.extra.xmult_gain
                 return {
@@ -4271,6 +4286,11 @@ SMODS.Joker{
                     level_up = -card.ability.extra.level
                 }
             end
+        end
+        if context.joker_main then
+            return {
+                xmult = card.ability.extra.xmult
+            }
         end
     end
 }
@@ -4390,7 +4410,7 @@ SMODS.Joker {
     loc_txt = {
         name = 'Top 10s',
         text = {
-            'Destroys all played {C:attention}10s',
+            'Destroy all played {C:attention}10s',
             'Recieve an {C:attention}Enhanced face{} card',
             'for each destroyed {C:attention}10{} at the',
             'start of the {C:attention}next round',
@@ -4512,7 +4532,7 @@ SMODS.Joker {
     loc_txt = {
         name = "Gem Joker",
         text = {
-            'Gives {C:money}$#1#{} at the',
+            'Earn {C:money}$#1#{} at the',
             'end of every {C:attention}boss blind'
         }
     },
@@ -4712,6 +4732,44 @@ SMODS.Joker {
     end
 }
 
+SMODS.Joker {
+    key = "jam_underwear",
+    loc_txt = {
+        name = 'Second Hand Undies',
+        text = {
+            'Gains {C:chips}+#1#{} Chips when',
+            '{C:attention}second{} hand contains a {C:attention}pair',
+            '{C:inactive}(Currently:{}{C:chips} +#2#{} {C:inactive}Chips){}',
+        }
+    },
+    blueprint_compat = true,
+    rarity = 1,
+    cost = 4,
+    discovered = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    atlas = 'Jammbo',
+    pos = { x = 10, y = 6 },
+    pools = { ["Jambatro"] = true },
+    config = { extra = { chips_gain = 22, chips = 0, type = 'Pair' } },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.chips_gain, card.ability.extra.chips, localize(card.ability.extra.type, 'poker_hands') } }
+    end,
+    calculate = function(self, card, context)
+        if context.before and next(context.poker_hands[card.ability.extra.type]) and G.GAME.current_round.hands_left == (G.GAME.round_resets.hands - 2) then
+            card.ability.extra.chips = card.ability.extra.chips + card.ability.extra.chips_gain
+            return {
+                message = 'Upgrade!'
+            }
+        end
+        if context.joker_main and next(context.poker_hands[card.ability.extra.type]) then
+            return {
+                chips = card.ability.extra.chips
+            }
+        end
+    end
+}
+
 
 
 
@@ -4873,9 +4931,9 @@ SMODS.Consumable {
     loc_txt = {
         name = 'Ant',
         text = {
-            'Gives the card on the right',
-            'half of the chips from the the 2',
-            'cards on the left',
+            'Gives the card on the {C:attention}right{}',
+            '{C:attention}half{} of the chips from the the {C:attention}2',
+            'cards on the {C:attention}left',
             '{C:inactive}(Credits to @codifyd for idea)'
         }
     },
@@ -4931,6 +4989,71 @@ SMODS.Consumable {
     end
 }
 
+SMODS.Consumable {
+    key = 'jam_soda',
+    loc_txt = {
+        name = 'Colour Bomb',
+        text = {
+            'Destroy all cards',
+            'held in hand of a',
+            'random {C:attention}Suit'
+        }
+    },
+    set = 'Spectral',
+    atlas = 'jam_spectral',
+    pos = { x = 0, y = 0 },
+    discovered = true,
+    config = {  },
+    use = function (self, card, area, copeier)
+        G.E_MANAGER:add_event(Event({
+            trigger = 'after',
+            delay = 0.2,
+            func = function()
+                G.hand:unhighlight_all()
+                return true
+            end
+        }))
+        G.E_MANAGER:add_event(Event({
+            trigger = 'after',
+            delay = 0.4,
+            func = function()
+                play_sound('tarot1')
+                return true
+            end
+        }))
+        local suits_in_hand = {}
+        for i = 1, #G.hand.cards do
+            local suit = G.hand.cards[i].base.suit
+            local match = false
+            for i = 1, #suits_in_hand do
+                if suits_in_hand[i] == suit then
+                    match = true
+                end
+            end
+            if match == false then
+                suits_in_hand[#suits_in_hand + 1] = suit
+            end
+        end
+        local position = pseudorandom('suit', 1, #suits_in_hand)
+        SMODS.calculate_effect({message = suits_in_hand[position]}, card)
+        delay(0.1)
+        local cards_to_destroy = {}
+        local counter = 1
+        for i = 1, #G.hand.cards do
+            if G.hand.cards[i].base.suit == suits_in_hand[position] then
+                cards_to_destroy[counter] = G.hand.cards[i]
+                G.hand:add_to_highlighted(G.hand.cards[i])
+                counter = counter + 1
+                delay(0.1)
+            end
+        end
+        SMODS.destroy_cards(cards_to_destroy)
+    end,
+    can_use = function(self, card)
+        return G.hand and #G.hand.cards > 1
+    end,
+}
+
 
 
 
@@ -4951,9 +5074,7 @@ SMODS.Booster {
     cost = 5,
     discovered = true,
     weight = 7,
-    pools = {
-        ["Jambatro"] = true
-    },
+    pools = { ["Jamboosters"] = true },
     config = { extra = 2, choose = 1 },
     create_card = function(self, card)
         return {set = "Jambatro", area = G.pack_cards, skip_materialize = true, soulable = false, key_append = "jammbo"}
@@ -4963,24 +5084,193 @@ SMODS.Booster {
 SMODS.Booster {
     key = 'jam_booster_2',
     loc_txt = {
-        name = 'Jumbo Jammbo Pack',
+        name = 'A Pack of Jammbos',
         text = {
             'Choose {C:attention}1{} of',
-            '{C:attention}5{} {C:red}Jambatro{} Jokers'
+            '{C:attention}2{} {C:red}Jambatro{} Jokers'
         },
-        group_name = 'Jambatro??'
+        group_name = 'Balammbo'
     },
     atlas = 'jam_boosters',
-    pos = { x = 1, y = 0 },
+    pos = { x = 0, y = 0 },
     draw_hand = false,
     cost = 5,
     discovered = true,
     weight = 7,
-    pools = {
-        ["Jambatro"] = true
+    pools = { ["Jamboosters"] = true },
+    config = { extra = 2, choose = 1 },
+    create_card = function(self, card)
+        return {set = "Jambatro", area = G.pack_cards, skip_materialize = true, soulable = false, key_append = "jammbo"}
+    end,
+}
+
+SMODS.Booster {
+    key = 'jam_booster_3',
+    loc_txt = {
+        name = 'Jummbo Pack',
+        text = {
+            'Choose {C:attention}1{} of',
+            '{C:attention}5{} {C:red}Jambatro{} Jokers'
+        },
+        group_name = 'Fortnite'
     },
+    atlas = 'jam_boosters',
+    pos = { x = 1, y = 0 },
+    draw_hand = false,
+    cost = 6,
+    discovered = true,
+    weight = 7,
+    pools = { ["Jamboosters"] = true },
     config = { extra = 5, choose = 1 },
     create_card = function(self, card)
         return {set = "Jambatro", area = G.pack_cards, skip_materialize = true, soulable = false, key_append = "jammbo"}
     end,
 }
+
+SMODS.Booster {
+    key = 'jam_booster_4',
+    loc_txt = {
+        name = 'Jummbugular Pack',
+        text = {
+            'Choose {C:attention}2{} of',
+            '{C:attention}7{} {C:red}Jambatro{} Jokers'
+        },
+        group_name = 'Insert Text Here'
+    },
+    atlas = 'jam_boosters',
+    pos = { x = 1, y = 0 },
+    draw_hand = false,
+    cost = 7,
+    discovered = true,
+    weight = 5,
+    pools = { ["Jamboosters"] = true },
+    config = { extra = 7, choose = 2 },
+    create_card = function(self, card)
+        return {set = "Jambatro", area = G.pack_cards, skip_materialize = true, soulable = false, key_append = "jammbo"}
+    end,
+}
+
+SMODS.Booster {
+    key = 'jam_bugster_1',
+    loc_txt = {
+        name = 'Bug Pack',
+        text = {
+            'Choose {C:attention}1{} of',
+            '{C:attention}2{} {C:green}Bug{} Cards'
+        },
+        group_name = 'The Bugs'
+    },
+    atlas = 'jam_boosters',
+    pos = { x = 1, y = 0 },
+    draw_hand = true,
+    cost = 7,
+    discovered = true,
+    weight = 5,
+    pools = { ["Jamboosters"] = true },
+    config = { extra = 2, choose = 1 },
+    create_card = function(self, card)
+        return {set = "jam_buggies", area = G.pack_cards, skip_materialize = true, soulable = false, key_append = "jammbo"}
+    end,
+}
+
+SMODS.Booster {
+    key = 'jam_bugster_2',
+    loc_txt = {
+        name = 'Bug Pack II',
+        text = {
+            'Choose {C:attention}1{} of',
+            '{C:attention}2{} {C:green}Bug{} Cards'
+        },
+        group_name = 'The Bugs'
+    },
+    atlas = 'jam_boosters',
+    pos = { x = 1, y = 0 },
+    draw_hand = true,
+    cost = 7,
+    discovered = true,
+    weight = 5,
+    pools = { ["Jamboosters"] = true },
+    config = { extra = 2, choose = 1 },
+    create_card = function(self, card)
+        return {set = "jam_buggies", area = G.pack_cards, skip_materialize = true, soulable = false, key_append = "jammbo"}
+    end,
+}
+
+SMODS.Booster {
+    key = 'jam_bugster_3',
+    loc_txt = {
+        name = 'Big Bug Pack',
+        text = {
+            'Choose {C:attention}1{} of',
+            '{C:attention}4{} {C:green}Bug{} Cards'
+        },
+        group_name = 'under your skin.'
+    },
+    atlas = 'jam_boosters',
+    pos = { x = 1, y = 0 },
+    draw_hand = true,
+    cost = 7,
+    discovered = true,
+    weight = 5,
+    pools = { ["Jamboosters"] = true },
+    config = { extra = 4, choose = 1 },
+    create_card = function(self, card)
+        return {set = "jam_buggies", area = G.pack_cards, skip_materialize = true, soulable = false, key_append = "jammbo"}
+    end,
+}
+
+SMODS.Booster {
+    key = 'jam_bugster_4',
+    loc_txt = {
+        name = 'Infestation',
+        text = {
+            'Choose {C:attention}2{} of',
+            '{C:attention}5{} {C:green}Bug{} Cards'
+        },
+        group_name = 'Crawlies'
+    },
+    atlas = 'jam_boosters',
+    pos = { x = 1, y = 0 },
+    draw_hand = true,
+    cost = 7,
+    discovered = true,
+    weight = 5,
+    pools = { ["Jamboosters"] = true },
+    config = { extra = 5, choose = 2 },
+    create_card = function(self, card)
+        return {set = "jam_buggies", area = G.pack_cards, skip_materialize = true, soulable = false, key_append = "jammbo"}
+    end,
+}
+
+--Never to be seen again until I like do some engine stuff and even then this really doesnt matter
+-- SMODS.Booster {
+--     key = 'jam_booster_booster',
+--     loc_txt = {
+--         name = 'Jammbo Booster Pack Pack',
+--         text = {
+--             'Choose {C:attention}1{} of',
+--             '{C:attention}3{} {C:red}Jambatro{} Booster Packs'
+--         },
+--         group_name = 'Inception'
+--     },
+--     atlas = 'jam_boosters',
+--     pos = { x = 1, y = 0 },
+--     draw_hand = false,
+--     cost = 7,
+--     discovered = true,
+--     weight = 5,
+--     config = { extra = 3, choose = 1 },
+--     create_card = function(self, card)
+--         return {set = "Jamboosters", area = G.pack_cards, skip_materialize = true, soulable = false, key_append = "jammbo"}
+--     end,
+-- }
+
+
+
+
+
+
+--Mod Stuff
+SMODS.current_mod.calculate = function(self, context)
+
+end
