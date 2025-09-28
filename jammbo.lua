@@ -4425,7 +4425,7 @@ SMODS.Joker {
     eternal_compat = true,
     perishable_compat = false,
     atlas = 'Jammbo',
-    pos = { x = 10, y = 6 },
+    pos = { x = 0, y = 7 },
     pools = { ["Jambatro"] = true },
 
     config = { extra = { destroyed10s = 0, destroying = false } },
@@ -4602,7 +4602,7 @@ SMODS.Joker {
     eternal_compat = true,
     perishable_compat = true,
     atlas = 'Jammbo',
-    pos = { x = 10, y = 6 },
+    pos = { x = 1, y = 7 },
     pools = { ["Jambatro"] = true },
 
     config = { extra = { chips = 0, chips_gain = 8 } },
@@ -4647,7 +4647,7 @@ SMODS.Joker {
     eternal_compat = true,
     perishable_compat = true,
     atlas = 'Jammbo',
-    pos = { x = 10, y = 6 },
+    pos = { x = 3, y = 7 },
     pools = { ["Jambatro"] = true },
 
     config = { extra = { mult = 8, making_card = false, type_3 = 'Three of a Kind', type_4 = 'Four of a Kind' } },
@@ -4749,7 +4749,7 @@ SMODS.Joker {
     eternal_compat = true,
     perishable_compat = true,
     atlas = 'Jammbo',
-    pos = { x = 10, y = 6 },
+    pos = { x = 2, y = 7 },
     pools = { ["Jambatro"] = true },
     config = { extra = { chips_gain = 22, chips = 0, type = 'Pair' } },
     loc_vars = function(self, info_queue, card)
@@ -5196,51 +5196,51 @@ SMODS.Booster {
     end,
 }
 
-SMODS.Booster {
-    key = 'jam_bugster_3',
-    loc_txt = {
-        name = 'Big Bug Pack',
-        text = {
-            'Choose {C:attention}1{} of',
-            '{C:attention}4{} {C:green}Bug{} Cards'
-        },
-        group_name = 'under your skin.'
-    },
-    atlas = 'jam_boosters',
-    pos = { x = 4, y = 0 },
-    draw_hand = true,
-    cost = 7,
-    discovered = true,
-    weight = 5,
-    pools = { ["Jamboosters"] = true },
-    config = { extra = 4, choose = 1 },
-    create_card = function(self, card)
-        return {set = "jam_buggies", area = G.pack_cards, skip_materialize = true, soulable = false, key_append = "jammbo"}
-    end,
-}
+-- SMODS.Booster {
+--     key = 'jam_bugster_3',
+--     loc_txt = {
+--         name = 'Big Bug Pack',
+--         text = {
+--             'Choose {C:attention}1{} of',
+--             '{C:attention}4{} {C:green}Bug{} Cards'
+--         },
+--         group_name = 'under your skin.'
+--     },
+--     atlas = 'jam_boosters',
+--     pos = { x = 4, y = 0 },
+--     draw_hand = true,
+--     cost = 7,
+--     discovered = true,
+--     weight = 5,
+--     pools = { ["Jamboosters"] = true },
+--     config = { extra = 4, choose = 1 },
+--     create_card = function(self, card)
+--         return {set = "jam_buggies", area = G.pack_cards, skip_materialize = true, soulable = false, key_append = "jammbo"}
+--     end,
+-- }
 
-SMODS.Booster {
-    key = 'jam_bugster_4',
-    loc_txt = {
-        name = 'Infestation',
-        text = {
-            'Choose {C:attention}2{} of',
-            '{C:attention}5{} {C:green}Bug{} Cards'
-        },
-        group_name = 'Crawlies'
-    },
-    atlas = 'jam_boosters',
-    pos = { x = 4, y = 0 },
-    draw_hand = true,
-    cost = 7,
-    discovered = true,
-    weight = 5,
-    pools = { ["Jamboosters"] = true },
-    config = { extra = 5, choose = 2 },
-    create_card = function(self, card)
-        return {set = "jam_buggies", area = G.pack_cards, skip_materialize = true, soulable = false, key_append = "jammbo"}
-    end,
-}
+-- SMODS.Booster {
+--     key = 'jam_bugster_4',
+--     loc_txt = {
+--         name = 'Infestation',
+--         text = {
+--             'Choose {C:attention}2{} of',
+--             '{C:attention}5{} {C:green}Bug{} Cards'
+--         },
+--         group_name = 'Crawlies'
+--     },
+--     atlas = 'jam_boosters',
+--     pos = { x = 4, y = 0 },
+--     draw_hand = true,
+--     cost = 7,
+--     discovered = true,
+--     weight = 5,
+--     pools = { ["Jamboosters"] = true },
+--     config = { extra = 5, choose = 2 },
+--     create_card = function(self, card)
+--         return {set = "jam_buggies", area = G.pack_cards, skip_materialize = true, soulable = false, key_append = "jammbo"}
+--     end,
+-- }
 
 --Never to be seen again until I like do some engine stuff and even then this really doesnt matter
 -- SMODS.Booster {
