@@ -634,7 +634,8 @@ SMODS.Joker {
         name = "Awkward Joker",
         text = {
             '{C:red}+3{} Mult for each',
-            'empty hand slot'
+            'empty hand slot',
+            '{C:inactive}(ex: Pair = +9 Mult)'
         }
     },
     blueprint_compat = true,
@@ -695,8 +696,8 @@ SMODS.Joker {
     loc_txt = {
         name = "Police Officer",
         text = {
-            'If hand played is {C:attention}Not Allowed{}',
-            'gains {C:red}+#2#{} Mult',
+            'Gains {C:red}+#2#{} Mult if hand',
+            'played is {C:attention}Not Allowed{}',
             '{C:inactive}(Currently: {}{C:red}+#1#{}{C:inactive} Mult){}'
         }
     },
@@ -1190,7 +1191,8 @@ SMODS.Joker {
             '{C:attention}played card{} and gaining {C:red}+#4#{} Mult',
             '{C:green}#3# in #5#{} chance of having',
             'a {C:attention}fatal heart attack{}',
-            '{C:inactive}(Currently: {}{C:red}+#3#{}{C:inactive} Mult){}'
+            '{C:inactive}(Currently: {}{C:red}+#3#{}{C:inactive} Mult){}',
+            '{C:inactive}Chance of heart attack increases with mult'
         }
     },
     blueprint_compat = true,
@@ -2024,7 +2026,7 @@ SMODS.Joker {
 
     calculate = function(self, card, context)
         if context.starting_shop and not context.blueprint then
-            card.ability.extra.suit_number = math.random(1, 3)
+            card.ability.extra.suit_number = pseudorandom("monochrone", 1, 3)
             if card.ability.extra.suit == 'Hearts' then
                 local suit_no = { 'Clubs', 'Diamonds', 'Spades' }
                 card.ability.extra.suit = suit_no[card.ability.extra.suit_number]
@@ -2117,7 +2119,7 @@ SMODS.Joker {
 
     calculate = function(self, card, context)
         if context.starting_shop and not context.blueprint then
-            card.ability.extra.man_number = math.random(1, 2)
+            card.ability.extra.man_number = pseudorandom("trinity", 1, 2)
             if card.ability.extra.man == 'Jezza' then
                 local man_no = { 'Cpt. Slow', 'Hamster' }
                 card.ability.extra.man = man_no[card.ability.extra.man_number]
@@ -2208,7 +2210,7 @@ SMODS.Joker {
         end
     end,
     add_to_deck = function(self, card, from_debuff)
-        card.ability.extra.man_number = math.random(1, 3)
+        card.ability.extra.man_number = pseudorandom("trinity", 1, 3)
             if card.ability.extra.man == 'Jezza' then
                 local man_no = { 'Cpt. Slow', 'Hamster', 'Jezza' }
                 card.ability.extra.man = man_no[card.ability.extra.man_number]
@@ -2420,7 +2422,7 @@ SMODS.Joker {
 
     calculate = function(self, card, context)
         if context.joker_main then
-            if SMODS.pseudorandom_probability(card, "starwalker", 1, card.ability.extra.odds) then
+            if pseudorandom("starwalker", 1, card.ability.extra.odds) == 2 then
                 return {
                     mult = 20
                 }
@@ -2438,8 +2440,8 @@ SMODS.Joker {
     loc_txt = {
         name = 'Thanos',
         text = {
-            'Destroys all {C:attention}cards{} until {C:attention}deck{}',
-            'size is {C:attention}#1#{} cards',
+            'Destroys all played {C:attention}cards{} until',
+            '{C:attention}deck{} size is {C:attention}#1#{} cards',
         }
     },
     blueprint_compat = true,
@@ -2451,7 +2453,6 @@ SMODS.Joker {
     atlas = 'Jammbo',
     pos = { x = 4, y = 4 },
     soul_pos = { x = 9, y = 0 },
-    pools = { ["Jambatro"] = true },
 
     config = { extra = { preferred_size = 26, difference = 0 } },
 
@@ -2494,7 +2495,8 @@ SMODS.Joker {
         name = 'Its Eeffoc...',
         text = {
             'If {C:attention}straight{} is played',
-            'backwards, {C:red}+13{} mult'
+            'backwards, {C:red}+13{} mult',
+            '{C:inactive}(ex: 10, J, Q, K, A)'
         }
     },
     blueprint_compat = true,
@@ -2645,9 +2647,10 @@ SMODS.Joker {
     loc_txt = {
         name = "Chip Shop",
         text = {
-            'Lose {C:money}$#2#{} (if available) and gain {C:chips}+6{} chips',
+            'Lose {C:money}$#2#{} and gain {C:chips}+6{} chips',
             'at the {C:attention}start of the round{}',
-            '{C:inactive}(Currently: {}{C:chips}+#1#{} {C:inactive}Chips){}'
+            '{C:inactive}(Currently: {}{C:chips}+#1#{} {C:inactive}Chips){}',
+            '{C:inactive}Wont accept money below 0'
         }
     },
     blueprint_compat = true,
@@ -2791,8 +2794,8 @@ SMODS.Joker {
 
     calculate = function(self, card, context)
         if context.starting_shop and not context.blueprint then
-            card.ability.extra.rank1 = math.random(2, 14)
-            card.ability.extra.rank2 = math.random(2, 14)
+            card.ability.extra.rank1 = pseudorandom("whimsy", 2, 14)
+            card.ability.extra.rank2 = pseudorandom("whimsy", 2, 14)
         end
         if context.cardarea == G.play and context.individual and context.other_card then
             local rank = context.other_card:get_id()
@@ -2817,8 +2820,8 @@ SMODS.Joker {
     end,
 
     add_to_deck = function(self, card, from_debuff)
-        card.ability.extra.rank1 = math.random(2, 14)
-        card.ability.extra.rank2 = math.random(2, 14)
+        card.ability.extra.rank1 = pseudorandom("whimsy", 2, 14)
+        card.ability.extra.rank2 = pseudorandom("whimsy", 2, 14)
     end,
 
     update = function(self, card, dt)
@@ -2863,9 +2866,9 @@ SMODS.Joker {
     loc_txt = {
         name = "Freaky Joker",
         text = {
-            'Gains {X:red,C:white}X#6#{} Mult for every {C:blue}Spectral{} card used',
-            'Gains {C:red}+#2#{} Mult for every {C:planet}Planet{} card used',
-            'Gains {C:chips}+#4#{} Chips for every {C:purple}Tarot{} card used',
+            'Gains {X:red,C:white}X#6#{} Mult when a {C:blue}Spectral{} card is used',
+            'Gains {C:red}+#2#{} Mult for when a {C:planet}Planet{} card is used',
+            'Gains {C:chips}+#4#{} Chips for when a {C:purple}Tarot{} card is used',
             '{C:inactive}(Currently: {C:chips}+#3#{} {C:inactive}Chips and {}{C:red}+#1#{} {C:inactive}Mult and {}{X:red,C:white}X#5#{} {C:inactive}Mult){}'
         }
     },
@@ -3003,8 +3006,8 @@ SMODS.Joker {
         }
     },
     blueprint_compat = true,
-    rarity = 1,
-    cost = 8,
+    rarity = 2,
+    cost = 6,
     discovered = true,
     eternal_compat = true,
     perishable_compat = true,
@@ -3124,7 +3127,7 @@ SMODS.Joker {
     },
     blueprint_compat = false,
     rarity = 2,
-    cost = 8,
+    cost = 7,
     discovered = true,
     eternal_compat = true,
     perishable_compat = true,
@@ -3188,7 +3191,6 @@ SMODS.Joker {
     atlas = 'Jammbo',
     pos = { x = 4, y = 5 },
     soul_pos = { x = 5, y = 5 },
-    pools = { ["Jambatro"] = true },
 
     calculate = function(self, card, context)
         if context.joker_main then
@@ -3318,7 +3320,8 @@ SMODS.Joker {
         name = 'SwawS',
         text = {
             'If {C:attention}Two Pair{} is',
-            'played mirrored, {C:red}+14{} Mult'
+            'played mirrored, {C:red}+14{} Mult',
+            '{C:inactive}(ex: 10, 4, 4, 10)'
         }
     },
     blueprint_compat = true,
@@ -3368,15 +3371,17 @@ SMODS.Joker {
     calculate = function(self, card, context)
         if context.end_of_round and context.game_over == false and context.main_eval then
             if G.GAME.blind.boss then
-                G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
+                G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 2
                 SMODS.calculate_effect({message = "Dino Nuggies!"}, card)
                 G.E_MANAGER:add_event(Event({
                     func = (function()
                         G.E_MANAGER:add_event(Event({
                             func = function()
-                                SMODS.add_card {
-                                    set = 'Spectral',
-                                }
+                                for i = 1, 2 do
+                                    SMODS.add_card {
+                                        set = 'Spectral',
+                                    }
+                                end
                                 G.GAME.consumeable_buffer = 0
                                 return true
                             end
@@ -3465,7 +3470,7 @@ SMODS.Joker {
         name = 'Discard Master',
         text = {
             'Gain {C:chips}+#2#{} chips if you have no discards',
-            'and you play a {C:attention}High Card{} is played with',
+            'and you play a {C:attention}High Card{} with',
             '4 other {C:attention}unscored{} cards',
             '{C:inactive}(Currently: {}{C:chips}+#1#{} {C:inactive}Chips){}',
         }
@@ -3577,7 +3582,8 @@ SMODS.Joker {
         text = {
             'Every {C:money}purchase{} has a',
             '{C:green}#1# in #2#{} chance of',
-            'creating a {C:purple}Tarot{} card'
+            'creating a {C:purple}Tarot{} card',
+            '{C:inactive}(Rerolls are not purchases)'
         }
     },
     blueprint_compat = true,
@@ -3647,8 +3653,8 @@ SMODS.Joker {
     loc_txt = {
         name = 'Comedy Duo',
         text = {
-            'Retriggers all',
-            'played {C:attention}Enhanced{} cards'
+            '{C:green}#1# in #2#{} chance to Retrigger',
+            'each played {C:attention}Enhanced{} card'
         }
     },
     blueprint_compat = true,
@@ -3661,13 +3667,20 @@ SMODS.Joker {
     pos = { x = 7, y = 5 },
     pools = { ["Jambatro"] = true },
 
-    config = { extra = { repetitions = 1 } },
+    config = { extra = { repetitions = 1, odds = 2 } },
+
+    loc_vars = function(self, info_queue, card)
+        local numerator, denominator = SMODS.get_probability_vars(card, 1, card.ability.extra.odds, "comedy")
+        return { vars = { numerator, denominator } }
+    end,
 
     calculate = function(self, card, context)
         if context.repetition and context.cardarea == G.play and context.other_card and context.other_card.config.center.key ~= "c_base" then
-            return {
-                repetitions = card.ability.extra.repetitions
-            }
+            if SMODS.pseudorandom_probability(card, "comedy", 1, card.ability.extra.odds) then
+                return {
+                    repetitions = card.ability.extra.repetitions
+                }
+            end
         end
     end
 }
@@ -4239,11 +4252,13 @@ SMODS.Joker{
     end,
 
     calculate = function(self, card, context)
-        if context.destroy_card and context.destroy_card:is_face() and context.cardarea == G.play and SMODS.pseudorandom_probability(card, 'thequeenie', 1, card.ability.extra.odds) and not context.blueprint then
-            return { 
-                remove = true,
-                message = "Off with your head!"
-            }
+        if context.destroy_card and context.destroy_card:is_face() and context.cardarea == G.play and not context.blueprint then
+            if SMODS.pseudorandom_probability(card, 'thequeenie', 1, card.ability.extra.odds) then
+                return { 
+                    remove = true,
+                    message = "Off with your head!"
+                }
+            end
         end
     end
 }
@@ -4445,7 +4460,7 @@ SMODS.Joker {
                 end
                 local enhancement = pseudorandom_element(cen_pool, 'spe_card')
                 local ranks = {"King", "Queen", "Jack"}
-                local stone_card = SMODS.add_card { set = "Base", rank = ranks[math.random(1,3)], enhancement = enhancement.key, area = G.deck }
+                local stone_card = SMODS.add_card { set = "Base", rank = ranks[pseudorandom("toptenny", 1,3)], enhancement = enhancement.key, area = G.deck }
                 func = function()
                     SMODS.calculate_context({ playing_card_added = true, cards = { stone_card } })
                 end
@@ -4737,7 +4752,7 @@ SMODS.Joker {
     loc_txt = {
         name = 'Second Hand Undies',
         text = {
-            'Gains {C:chips}+#1#{} Chips when',
+            'Gains {C:chips}+#1#{} Chips if',
             '{C:attention}second{} hand contains a {C:attention}pair',
             '{C:inactive}(Currently:{}{C:chips} +#2#{} {C:inactive}Chips){}',
         }
@@ -4751,10 +4766,13 @@ SMODS.Joker {
     atlas = 'Jammbo',
     pos = { x = 2, y = 7 },
     pools = { ["Jambatro"] = true },
+
     config = { extra = { chips_gain = 22, chips = 0, type = 'Pair' } },
+
     loc_vars = function(self, info_queue, card)
         return { vars = { card.ability.extra.chips_gain, card.ability.extra.chips, localize(card.ability.extra.type, 'poker_hands') } }
     end,
+
     calculate = function(self, card, context)
         if context.before and next(context.poker_hands[card.ability.extra.type]) and G.GAME.current_round.hands_left == (G.GAME.round_resets.hands - 2) then
             card.ability.extra.chips = card.ability.extra.chips + card.ability.extra.chips_gain
@@ -4802,7 +4820,7 @@ SMODS.Consumable {
         name = 'Mango',
         text = {
             "Enhances {C:attention}#1#{} selected",
-            "card into",
+            "cards into",
             "{C:attention}Mustard Cards",
         }
     },
@@ -4871,7 +4889,7 @@ SMODS.Consumable {
         name = 'Church',
         text = {
             "Enhances {C:attention}#1#{} selected",
-            "card into",
+            "cards into",
             "{C:attention}Enlighhtenend Cards",
         }
     },
