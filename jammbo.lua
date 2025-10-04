@@ -550,7 +550,7 @@ SMODS.Joker {
         text = {
             'Gives {C:red}+3{} Mult for',
             'every {C:attention}8{} in your deck',
-            '{C:inactive}(Currently:{}{C:red} +#2#{} {C:inactive}Mult){}',
+            '{C:inactive}(Currently{}{C:red} +#2#{} {C:inactive}Mult){}',
         }
     },
     blueprint_compat = true,
@@ -614,7 +614,7 @@ SMODS.Joker {
 
     loc_vars = function(self, info_queue, card)
         local numerator, denominator = SMODS.get_probability_vars(card, 1, card.ability.extra.odds, 'tyrsfall')
-        return { vars = { numerator, denominator, card.ability.extra.Xmult } }
+        return { vars = { numerator, denominator, card.ability.extra.xmult } }
     end,
 
     calculate = function(self, card, context)
@@ -698,7 +698,7 @@ SMODS.Joker {
         text = {
             'Gains {C:red}+#2#{} Mult if hand',
             'played is {C:attention}Not Allowed{}',
-            '{C:inactive}(Currently: {}{C:red}+#1#{}{C:inactive} Mult){}'
+            '{C:inactive}(Currently {}{C:red}+#1#{}{C:inactive} Mult){}'
         }
     },
     blueprint_compat = true,
@@ -876,7 +876,7 @@ SMODS.Joker {
         text = {
             'Gains {C:red}+#2#{} Mult for every',
             '{C:attention}Card{} bought in the {C:attention}Shop{}',
-            '{C:inactive}(Currently: {}{C:red}+#1#{}{C:inactive} Mult){}',
+            '{C:inactive}(Currently {}{C:red}+#1#{}{C:inactive} Mult){}',
             '{C:inactive}Does not include Booster Packs{}'
         }
     },
@@ -1191,7 +1191,7 @@ SMODS.Joker {
             '{C:attention}played card{} and gaining {C:red}+#4#{} Mult',
             '{C:green}#3# in #5#{} chance of having',
             'a {C:attention}fatal heart attack{}',
-            '{C:inactive}(Currently: {}{C:red}+#3#{}{C:inactive} Mult){}',
+            '{C:inactive}(Currently {}{C:red}+#3#{}{C:inactive} Mult){}',
             '{C:inactive}Chance of heart attack increases with mult'
         }
     },
@@ -1279,7 +1279,10 @@ SMODS.Joker {
                 }
             end
         end
-    end
+    end,
+    add_to_deck = function(self, card, from_debuff)
+        card:set_eternal()
+    end,
 }
 
 SMODS.Joker {
@@ -1289,7 +1292,7 @@ SMODS.Joker {
         text = {
             'When cummulative {C:attention}Jokers{}',
             'reset, gains {C:red}+#2#{} Mult',
-            '{C:inactive}(Currently:{}{C:red} +#1#{} {C:inactive}Mult){}'
+            '{C:inactive}(Currently{}{C:red} +#1#{} {C:inactive}Mult){}'
         }
     },
     blueprint_compat = true,
@@ -1467,7 +1470,7 @@ SMODS.Joker {
         text = {
             'Gains {C:red}+#2#{} Mult when {C:attention}shop{} exited',
             'without gaining or losing any {C:money}money{}',
-            '{C:inactive}(Currently:{}{C:red} +#1#{} {C:inactive}Mult){}'
+            '{C:inactive}(Currently{}{C:red} +#1#{} {C:inactive}Mult){}'
         }
     },
     blueprint_compat = true,
@@ -1519,7 +1522,7 @@ SMODS.Joker {
             '{C:red}+10{} mult if {C:attention}deck{} is 0 cards',
             '{X:red,C:white}X3{} Mult for every {C:attention}tarot card{}',
             'used when the game is {C:attention}paused{}',
-            '{C:inactive}(Currently:{}{C:red} +0{} {C:inactive}Mult,{}{C:chips} +0{} {C:inactive}Chips, {X:red,C:white}X1{} {C:inactive}Mult){}'
+            '{C:inactive}(Currently{}{C:red} +0{} {C:inactive}Mult,{}{C:chips} +0{} {C:inactive}Chips, {X:red,C:white}X1{} {C:inactive}Mult){}'
         }
     },
     blueprint_compat = true,
@@ -1906,6 +1909,7 @@ SMODS.Joker {
             local enhancement = pseudorandom_element(cen_pool, 'spe_card')
             if chrank == 1 or chrank == 2 then
                 local king = SMODS.create_card { set = "Playing Card", rank = "King", area = G.discard, enhancement = enhancement.key }
+                print(enhancement.key)
                 G.playing_card = (G.playing_card and G.playing_card + 1) or 1
                 king.playing_card = G.playing_card
                 table.insert(G.playing_cards, king)
@@ -1933,6 +1937,7 @@ SMODS.Joker {
             end
             if chrank == 3 or chrank == 4 then
                 local queen = SMODS.create_card { set = "Playing Card", rank = "Queen", area = G.discard, enhancement = enhancement.key }
+                print(enhancement.key)
                 G.playing_card = (G.playing_card and G.playing_card + 1) or 1
                 queen.playing_card = G.playing_card
                 table.insert(G.playing_cards, queen)
@@ -1960,6 +1965,7 @@ SMODS.Joker {
             end
             if chrank == 5 or chrank == 6 then
                 local jack = SMODS.create_card { set = "Playing Card", rank = "Jack", area = G.discard, enhancement = enhancement.key }
+                print(enhancement.key)
                 G.playing_card = (G.playing_card and G.playing_card + 1) or 1
                 jack.playing_card = G.playing_card
                 table.insert(G.playing_cards, jack)
@@ -1972,7 +1978,7 @@ SMODS.Joker {
                     end
                 }))
                 return {
-                    message = 'Its a boy!',
+                    message = 'Its a boy?',
                     func = function()
                         G.E_MANAGER:add_event(Event({
                             func = function()
@@ -2026,35 +2032,21 @@ SMODS.Joker {
 
     calculate = function(self, card, context)
         if context.starting_shop and not context.blueprint then
-            card.ability.extra.suit_number = pseudorandom("monochrone", 1, 3)
-            if card.ability.extra.suit == 'Hearts' then
-                local suit_no = { 'Clubs', 'Diamonds', 'Spades' }
-                card.ability.extra.suit = suit_no[card.ability.extra.suit_number]
-                return {
-                    message = ''
-                }
+            local suits_in_deck = {}
+            for k, v in pairs(G.playing_cards) do
+                local suit = v.base.suit
+                local match = false
+                for i = 1, #suits_in_deck do
+                    if suit == suits_in_deck[i] or suit == card.ability.extra.suit then
+                        match = true
+                    end
+                end
+                if match == false then
+                    suits_in_deck[#suits_in_deck + 1] = suit
+                end
             end
-            if card.ability.extra.suit == 'Clubs' then
-                local suit_no = { 'Hearts', 'Diamonds', 'Spades' }
-                card.ability.extra.suit = suit_no[card.ability.extra.suit_number]
-                return {
-                    message = ''
-                }
-            end
-            if card.ability.extra.suit == 'Diamonds' then
-                local suit_no = { 'Hearts', 'Clubs', 'Spades' }
-                card.ability.extra.suit = suit_no[card.ability.extra.suit_number]
-                return {
-                    message = ''
-                }
-            end
-            if card.ability.extra.suit == 'Spades' then
-                local suit_no = { 'Hearts', 'Clubs', 'Diamonds' }
-                card.ability.extra.suit = suit_no[card.ability.extra.suit_number]
-                return {
-                    message = ''
-                }
-            end
+            local position = pseudorandom('suit', 1, #suits_in_deck)
+            card.ability.extra.suit = suits_in_deck[position]
         end
         if context.setting_blind and not context.blueprint then
             for k, v in pairs(G.playing_cards) do
@@ -2107,85 +2099,46 @@ SMODS.Joker {
     config = { 
         extra = { 
             man = 'Jezza', 
-            man_number = 1, 
             xchips = 1.2, 
             h_size = 2,
         } 
     },
 
     loc_vars = function(self, info_queue, card)
-        return { vars = { card.ability.extra.man, card.ability.extra.man_number, card.ability.extra.xchips } }
+        return { vars = { card.ability.extra.man, card.ability.extra.xchips } }
     end,
 
     calculate = function(self, card, context)
         if context.starting_shop and not context.blueprint then
-            card.ability.extra.man_number = pseudorandom("trinity", 1, 2)
-            if card.ability.extra.man == 'Jezza' then
-                local man_no = { 'Cpt. Slow', 'Hamster' }
-                card.ability.extra.man = man_no[card.ability.extra.man_number]
-                if card.ability.extra.man == 'Cpt. Slow' then
-                    return {
-                        sound = 'jammbo_Slow',
-                        message = ''
-                    }
-                end
-                if card.ability.extra.man == 'Hamster' then
-                    return {
-                        sound = 'jammbo_Hamster',
-                        message = ''
-                    }
-                end
-                if card.ability.extra.man == 'Jezza' then
-                    return {
-                        sound = 'jammbo_Jezza',
-                        message = ''
-                    }
-                end
-            end
             if card.ability.extra.man == 'Cpt. Slow' then
                 G.hand:change_size(-card.ability.extra.h_size)
-                local man_no = { 'Jezza', 'Hamster' }
-                card.ability.extra.man = man_no[card.ability.extra.man_number]
-                if card.ability.extra.man == 'Cpt. Slow' then
-                    return {
-                        sound = 'jammbo_Slow',
-                        message = ''
-                    }
-                end
-                if card.ability.extra.man == 'Hamster' then
-                    return {
-                        sound = 'jammbo_Hamster',
-                        message = ''
-                    }
-                end
-                if card.ability.extra.man == 'Jezza' then
-                    return {
-                        sound = 'jammbo_Jezza',
-                        message = ''
-                    }
+            end
+            local trio_table = { 'Jezza', 'Cpt. Slow', 'Hamster' }
+            local so_called_empty_table = {}
+            for i = 1, #trio_table do
+                if trio_table[i] ~= card.ability.extra.man then
+                    so_called_empty_table[#so_called_empty_table + 1] = trio_table[i]
                 end
             end
+            local position = pseudorandom("trinity", 1, #so_called_empty_table)
+            card.ability.extra.man = so_called_empty_table[position]
+            if card.ability.extra.man == 'Cpt. Slow' then
+                return {
+                    sound = 'jammbo_Slow',
+                    message = ''
+                }
+            end
             if card.ability.extra.man == 'Hamster' then
-                local man_no = { 'Cpt. Slow', 'Jezza' }
-                card.ability.extra.man = man_no[card.ability.extra.man_number]
-                if card.ability.extra.man == 'Cpt. Slow' then
-                    return {
-                        sound = 'jammbo_Slow',
-                        message = ''
-                    }
-                end
-                if card.ability.extra.man == 'Hamster' then
-                    return {
-                        sound = 'jammbo_Hamster',
-                        message = ''
-                    }
-                end
-                if card.ability.extra.man == 'Jezza' then
-                    return {
-                        sound = 'jammbo_Jezza',
-                        message = ''
-                    }
-                end
+                return {
+                    sound = 'jammbo_Hamster',
+                    message = ''
+                }
+            end
+            if card.ability.extra.man == 'Jezza' then
+                return {
+                    sound = 'jammbo_Jezza',
+                    message = ''
+                }
             end
         end
         if card.ability.extra.man == 'Jezza' then
@@ -2210,10 +2163,10 @@ SMODS.Joker {
         end
     end,
     add_to_deck = function(self, card, from_debuff)
-        card.ability.extra.man_number = pseudorandom("trinity", 1, 3)
+        local position = pseudorandom("trinity", 1, 3)
             if card.ability.extra.man == 'Jezza' then
                 local man_no = { 'Cpt. Slow', 'Hamster', 'Jezza' }
-                card.ability.extra.man = man_no[card.ability.extra.man_number]
+                card.ability.extra.man = man_no[position]
             end
     end,
 }
@@ -2337,7 +2290,7 @@ SMODS.Joker {
             '{C:green}#1# in #2#{} chance to steal up to {C:chips}-50{} Chips',
             'and gain {C:red}+#5#{} Mult',
             '{C:green}#3# in #4#{} chance to release Mult and {C:attention}reset{}',
-            '{C:inactive}(Currently: {}{C:red}+#3#{} {C:inactive}Mult){}',
+            '{C:inactive}(Currently {}{C:red}+#3#{} {C:inactive}Mult){}',
             '{C:inactive}(Yes, this is an analogy for bird shit){}'
         }
     },
@@ -2649,7 +2602,7 @@ SMODS.Joker {
         text = {
             'Lose {C:money}$#2#{} and gain {C:chips}+6{} chips',
             'at the {C:attention}start of the round{}',
-            '{C:inactive}(Currently: {}{C:chips}+#1#{} {C:inactive}Chips){}',
+            '{C:inactive}(Currently {}{C:chips}+#1#{} {C:inactive}Chips){}',
             '{C:inactive}Wont accept money below 0'
         }
     },
@@ -2772,7 +2725,7 @@ SMODS.Joker {
             'Whether you play a {C:attention}#3#{},',
             'or you discard a {C:attention}#4#{}...',
             'Joker gains {C:chips}+#2#{} Chips',
-            '{C:inactive}(Currently: {}{C:chips}+#1#{} {C:inactive}Chips){}',
+            '{C:inactive}(Currently {}{C:chips}+#1#{} {C:inactive}Chips){}',
             '{C:inactive}(Ranks change at the end of the round){}'
         }
     },
@@ -2869,7 +2822,7 @@ SMODS.Joker {
             'Gains {X:red,C:white}X#6#{} Mult when a {C:blue}Spectral{} card is used',
             'Gains {C:red}+#2#{} Mult for when a {C:planet}Planet{} card is used',
             'Gains {C:chips}+#4#{} Chips for when a {C:purple}Tarot{} card is used',
-            '{C:inactive}(Currently: {C:chips}+#3#{} {C:inactive}Chips and {}{C:red}+#1#{} {C:inactive}Mult and {}{X:red,C:white}X#5#{} {C:inactive}Mult){}'
+            '{C:inactive}(Currently {C:chips}+#3#{} {C:inactive}Chips and {}{C:red}+#1#{} {C:inactive}Mult and {}{X:red,C:white}X#5#{} {C:inactive}Mult){}'
         }
     },
     blueprint_compat = true,
@@ -3037,11 +2990,11 @@ SMODS.Joker {
         text = {
             'If scored {C:attention}chips{} is over {C:attention}#2#%{} of',
             'required {C:attention}Blind score{}, gain an {C:chips}extra life{}',
-            '{C:inactive}(Currently: #3# Required Chips){}',
+            '{C:inactive}(Currently #3# Required Chips){}',
             '{C:chips}Extra life{} consumed if a Blind is {C:red}failed{}',
             '{C:inactive}(Can only gain 1 life per Ante){}',
             '{C:inactive}(Requirement scales with amount of lives){}',
-            '{C:inactive}(Currently: x{}{C:chips}#1#{}{C:inactive} Life){}'
+            '{C:inactive}(Currently x{}{C:chips}#1#{}{C:inactive} Life){}'
         }
     },
     blueprint_compat = false,
@@ -3120,7 +3073,7 @@ SMODS.Joker {
             'scored for {C:attention}#1#{} rounds',
             'and scores stored Mult',
             'as {X:red,C:white}XMult{} on the final round',
-            '{C:inactive}(Currently: {}{X:red,C:white}X#3#{}{C:inactive} Mult){}',
+            '{C:inactive}(Currently {}{X:red,C:white}X#3#{}{C:inactive} Mult){}',
             '{C:inactive}Always scores last{}'
 
         }
@@ -3209,7 +3162,7 @@ SMODS.Joker {
             'Gains {C:red}+3{} Mult at the end of the round',
             'When Mult reaches {C:red}+21{}, lasts for 2 more rounds',
             'until it burns',
-            '{C:inactive}(Currently: {}{C:red}+#1#{}{C:inactive} Mult){}'
+            '{C:inactive}(Currently {}{C:red}+#1#{}{C:inactive} Mult){}'
         }
     },
     blueprint_compat = true,
@@ -3419,7 +3372,7 @@ SMODS.Joker {
         text = {
             '{X:chips,C:white}X#1#{} Chips for',
             'each {C:attention}Diamond card{} in your deck',
-            '{C:inactive}(Currently: {}{X:chips,C:white}X#2#{} {C:inactive}Chips){}',
+            '{C:inactive}(Currently {}{X:chips,C:white}X#2#{} {C:inactive}Chips){}',
         }
     },
     blueprint_compat = true,
@@ -3472,7 +3425,7 @@ SMODS.Joker {
             'Gain {C:chips}+#2#{} chips if you have no discards',
             'and you play a {C:attention}High Card{} with',
             '4 other {C:attention}unscored{} cards',
-            '{C:inactive}(Currently: {}{C:chips}+#1#{} {C:inactive}Chips){}',
+            '{C:inactive}(Currently {}{C:chips}+#1#{} {C:inactive}Chips){}',
         }
     },
     blueprint_compat = true,
@@ -4272,7 +4225,7 @@ SMODS.Joker{
             'decrease played hand',
             'level by {C:attention}#3#',
             'and gain {X:red,C:white}X#5#{} Mult',
-            '{C:inactive}(Currently: {}{X:red,C:white} X#4#{} {C:inactive}Mult){}',
+            '{C:inactive}(Currently {}{X:red,C:white} X#4#{} {C:inactive}Mult){}',
         }
     },
     blueprint_compat = true,
@@ -4320,7 +4273,7 @@ SMODS.Joker{
             '{C:attention}Enlightened{} card in the deck',
             'All discarded {C:attention}face{}',
             'cards become {C:attention}Enlightened{}',
-            '{C:inactive}(Currently:{}{C:red} +#3#{} {C:inactive}Mult){}',
+            '{C:inactive}(Currently{}{C:red} +#3#{} {C:inactive}Mult){}',
         }
     },
     blueprint_compat = true,
@@ -4497,7 +4450,7 @@ SMODS.Joker {
             'of the round for',
             'every 2 {C:attention}Enlightened',
             'Cards in your deck',
-            '{C:inactive}(Currently:{}{C:money} $#1#{}{C:inactive}){}',
+            '{C:inactive}(Currently{}{C:money} $#1#{}{C:inactive}){}',
         }
     },
     blueprint_compat = true,
@@ -4607,7 +4560,7 @@ SMODS.Joker {
         text = {
             'Gains {C:chips}+#1#{} Chips when',
             'a card is {C:attention}destroyed',
-            '{C:inactive}(Currently:{}{C:chips} +#2#{} {C:inactive}Chips){}',
+            '{C:inactive}(Currently{}{C:chips} +#2#{} {C:inactive}Chips){}',
         }
     },
     blueprint_compat = true,
@@ -4754,7 +4707,7 @@ SMODS.Joker {
         text = {
             'Gains {C:chips}+#1#{} Chips if',
             '{C:attention}second{} hand contains a {C:attention}pair',
-            '{C:inactive}(Currently:{}{C:chips} +#2#{} {C:inactive}Chips){}',
+            '{C:inactive}(Currently{}{C:chips} +#2#{} {C:inactive}Chips){}',
         }
     },
     blueprint_compat = true,
@@ -5070,6 +5023,129 @@ SMODS.Consumable {
     can_use = function(self, card)
         return G.hand and #G.hand.cards > 1
     end,
+}
+
+SMODS.Consumable {
+    key = 'jam_beetle',
+    loc_txt = {
+        name = 'Beetle',
+        text = {
+            'Creates a random',
+            '{C:blue}Spectral{} Card'
+        }
+    },
+    set = 'jam_bugs',
+    atlas = 'jam_bugs',
+    pos = { x = 2, y = 0 },
+    discovered = true,
+    pools = { ["jam_buggies"] = true },
+    config = { },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { } }
+    end,
+    use = function(self, card, area, copier)
+        G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
+        G.E_MANAGER:add_event(Event({
+            func = (function()
+                G.E_MANAGER:add_event(Event({
+                    func = function()
+                        SMODS.add_card {
+                            set = 'Spectral',
+                        }
+                        G.GAME.consumeable_buffer = 0
+                        return true
+                    end
+                }))
+                return true
+            end)
+        }))
+        return nil, true
+    end,
+    can_use = function(self, card)
+        return #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit
+    end,
+}
+
+SMODS.Consumable {
+    key = 'jam_butterfly',
+    loc_txt = {
+        name = 'Butterfly',
+        text = {
+            'Gives up to {C:attention}#1#{} cards',
+            '{C:attention}random{} enhancements'
+        }
+    },
+    set = 'jam_bugs',
+    atlas = 'jam_bugs',
+    pos = { x = 3, y = 0 },
+    discovered = true,
+    pools = { ["jam_buggies"] = true },
+    config = { max_highlighted = 2, mod_conv = 'm_jammbo_jam_enlightened' },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.max_highlighted } }
+    end,
+    use = function(self, card, area, copier)
+        local cen_pool = {}
+        for _, enhancement_center in pairs(G.P_CENTER_POOLS["Enhanced"]) do
+            cen_pool[#cen_pool + 1] = enhancement_center
+        end
+        G.E_MANAGER:add_event(Event({
+            trigger = 'after',
+            delay = 0.4,
+            func = function()
+                play_sound('tarot1')
+                card:juice_up(0.3, 0.5)
+                return true
+            end
+        }))
+        for i = 1, #G.hand.highlighted do
+            local percent = 1.15 - (i - 0.999) / (#G.hand.highlighted - 0.998) * 0.3
+            G.E_MANAGER:add_event(Event({
+                trigger = 'after',
+                delay = 0.15,
+                func = function()
+                    G.hand.highlighted[i]:flip()
+                    play_sound('card1', percent)
+                    G.hand.highlighted[i]:juice_up(0.3, 0.3)
+                    return true
+                end
+            }))
+        end
+        delay(0.2)
+        for i = 1, #G.hand.highlighted do
+            local enhancement = pseudorandom_element(cen_pool, 'spe_card')
+            G.E_MANAGER:add_event(Event({
+                trigger = 'after',
+                delay = 0.1,
+                func = function()
+                    G.hand.highlighted[i]:set_ability(enhancement.key)
+                    return true
+                end
+            }))
+        end
+        for i = 1, #G.hand.highlighted do
+            local percent = 0.85 + (i - 0.999) / (#G.hand.highlighted - 0.998) * 0.3
+            G.E_MANAGER:add_event(Event({
+                trigger = 'after',
+                delay = 0.15,
+                func = function()
+                    G.hand.highlighted[i]:flip()
+                    play_sound('tarot2', percent, 0.6)
+                    G.hand.highlighted[i]:juice_up(0.3, 0.3)
+                    return true
+                end
+            }))
+        end
+        G.E_MANAGER:add_event(Event({
+            trigger = 'after',
+            delay = 0.2,
+            func = function()
+                G.hand:unhighlight_all()
+                return true
+            end
+        }))
+        delay(0.5)
+    end
 }
 
 
