@@ -144,8 +144,8 @@ SMODS.Enhancement {
         text = {
             'Retrigger card {C:attention}2{} times',
             '{C:green}#1# in #2#{} chance to',
-            '{C:attention}Unenlighten{} all',
-            'played {C:attention}Enlightened{} cards'
+            'remove {C:attention}enhancement{} when',
+            'played'
         }
     },
     atlas = 'jam_enhancements',
@@ -303,8 +303,8 @@ SMODS.Joker {
     loc_txt = {
         name = "Fantastic Joker",
         text = {
-            'Each played {C:attention}4{} gives',
-            '{C:blue}+44{} Chips and {C:red}+4{} Mult',
+            'Each played {C:attention}4{}',
+            'gives {C:blue}+44{} Chips',
         }
     },
     blueprint_compat = true,
@@ -317,10 +317,10 @@ SMODS.Joker {
     pos = { x = 5, y = 0 },
     pools = { ["Jambatro"] = true },
 
-    config = { extra = { chips = 44, mult = 4 } },
+    config = { extra = { chips = 44 } },
 
     loc_vars = function(self, info_queue, card)
-        return { vars = { card.ability.extra.chips, card.ability.extra.mult } }
+        return { vars = { card.ability.extra.chips } }
     end,
 
     calculate = function(self, card, context)
@@ -328,7 +328,6 @@ SMODS.Joker {
             (context.other_card:get_id() == 4) then
             return {
                 chips = card.ability.extra.chips,
-                mult = card.ability.extra.mult,
             }
         end
     end
@@ -433,7 +432,7 @@ SMODS.Joker {
     config = { extra = { xmult = 1.02 } },
 
     calculate = function (self, card, context)
-        if context.joker_main then
+        if context.joker_main and #context.scoring_hand <= 1 then
             return {
                 xmult = card.ability.extra.xmult
             }
@@ -657,7 +656,7 @@ SMODS.Joker {
     calculate = function(self, card, context)
         if context.joker_main then
             return {
-                mult = card.ability.extra.mult * (5 - #context.full_hand)
+                mult = card.ability.extra.mult * (G.GAME.starting_params.hand_size - #context.full_hand)
             }
         end
     end
@@ -722,8 +721,6 @@ SMODS.Joker {
             card.ability.extra.mult = card.ability.extra.mult + card.ability.extra.mult_bonus
             return {
                 message = 'Whas all this then?',
-                func = function()
-                end
             }
         end
         if context.joker_main then
@@ -996,7 +993,7 @@ SMODS.Joker {
             '{X:chips,C:white}X2{} Chips! Each correct',
             'digit gives {C:chips}+50{} Chips',
             '{C:inactive}(Next digit: {C:attention}#2#{}{C:inactive}){}',
-            '{C:inactive}(Only counts one digit per hand){}'
+            '{C:inactive}Can count multiple digits per round{}'
         }
     },
     blueprint_compat = true,
@@ -1016,35 +1013,32 @@ SMODS.Joker {
     end,
 
     calculate = function(self, card, context)
-        if context.joker_main then
-            local hascorrectnumber = false
-            local digits = { 14, 14, 8, 9, 9, 9, 8, 8, 14, 9, 9, 9, 14, 14, 9, 7, 2, 5, 3, "Complete!" }
-            if card.ability.extra.digit < 20 then
-                for i = 1, #context.scoring_hand do
-                    if context.full_hand[i]:get_id() == digits[card.ability.extra.digit] then
-                        hascorrectnumber = true
-                    end
-                end
-
-                if hascorrectnumber == true then
-                    card.ability.extra.digit = card.ability.extra.digit + 1
-                    if digits[card.ability.extra.digit] == 14 then
-                        card.ability.extra.next_number = "Ace"
-                    else
-                        card.ability.extra.next_number = digits[card.ability.extra.digit]
-                    end
-                    return {
-                        chips = card.ability.extra.chips,
-                        message = "Well, thats easy to remember!",
-                        hascorrectnumber = false
-                    }
-                end
+        local digits = { 14, 14, 8, 9, 9, 9, 8, 8, 14, 9, 9, 9, 14, 14, 9, 7, 2, 5, 3, "Complete!" }
+        if context.individual and context.cardarea == G.play and card.ability.extra.digit < 20 and (context.other_card:get_id() == digits[card.ability.extra.digit]) 
+        and not context.blueprint then
+            card.ability.extra.digit = card.ability.extra.digit + 1
+            if digits[card.ability.extra.digit] == 14 then
+                card.ability.extra.next_number = "Ace"
             else
-                return {
-                    xchips = 2,
-                    message = "I've just finished my milk"
-                }
+                card.ability.extra.next_number = digits[card.ability.extra.digit]
             end
+            return {
+                chips = card.ability.extra.chips,
+                message = "Well, thats easy to remember!",
+            }
+        end
+        if context.individual and context.cardarea == G.play and card.ability.extra.digit < 20 and (context.other_card:get_id() == digits[card.ability.extra.digit]) 
+        and context.blueprint then
+            return {
+                chips = card.ability.extra.chips,
+            }
+        end
+
+        if context.joker_main and card.ability.extra.digit >= 20 then
+            return {
+                xchips = 2,
+                message = "I've just finished my milk"
+            }
         end
     end
 }
@@ -1281,7 +1275,7 @@ SMODS.Joker {
         end
     end,
     add_to_deck = function(self, card, from_debuff)
-        card:set_eternal()
+        card.ability.eternal = true
     end,
 }
 
@@ -2067,6 +2061,13 @@ SMODS.Joker {
                 xmult = card.ability.extra.xmult
             }
         end
+    end,
+    remove_from_deck = function(self, card, from_debuff)
+        for k, v in pairs(G.playing_cards) do
+            if not v:is_suit(card.ability.extra.suit) then
+                SMODS.debuff_card(v, false, "thistextisredundant")
+            end
+        end
     end
 }
 
@@ -2668,49 +2669,31 @@ SMODS.Joker {
     end,
     
     calculate = function(self, card, context)
-        if context.cardarea == G.play and context.individual and context.other_card then
+        if context.cardarea == G.play and context.individual and context.other_card and not context.blueprint then
             local rank = context.other_card:get_id()
-			if rank == 6 and card.ability.extra.six == false and card.ability.extra.seven == true then
-                card.ability.extra.six = true
-				return {
-                    sound = 'jammbo_mustard',
-                    message = '6!',
-                }
-			end
-            if rank == 7 and card.ability.extra.seven == false and card.ability.extra.six == true then
-                card.ability.extra.seven = true
-				return {
-                    sound = 'jammbo_mustard',
-                    message = '7!',
-                }
-			end
             if rank == 6 and card.ability.extra.six == false then
                 card.ability.extra.six = true
-				return {
-                    message = '6!',
-                }
+				SMODS.calculate_effect({message = "6!"}, card)
 			end
             if rank == 7 and card.ability.extra.seven == false then
                 card.ability.extra.seven = true
-				return {
-                    message = '7!',
-                }
+				SMODS.calculate_effect({message = "7!"}, card)
 			end
+            if SMODS.has_enhancement(context.other_card, "m_jammbo_jam_mustard") then
+                card.ability.extra.xmult = card.ability.extra.xmult + card.ability.extra.xmult_gain
+                return {
+                    message = 'Upstard!'
+                }
+            end
 		end
-
-        if context.individual and context.cardarea == G.play and context.other_card and SMODS.has_enhancement(context.other_card, "m_jammbo_jam_mustard") then
-            card.ability.extra.xmult = card.ability.extra.xmult + card.ability.extra.xmult_gain
-            return {
-                message = 'Upstard!'
-            }
-        end
         
         if context.joker_main then
             if card.ability.extra.six == true and card.ability.extra.seven == true then
                 card.ability.extra.six = false
                 card.ability.extra.seven = false
                 return {
-                    xmult = card.ability.extra.xmult
+                    xmult = card.ability.extra.xmult,
+                    sound = 'jammbo_mustard'
                 }
             end
         end
@@ -3272,9 +3255,11 @@ SMODS.Joker {
     loc_txt = {
         name = 'SwawS',
         text = {
-            'If {C:attention}Two Pair{} is',
+            'If {C:attention}Two Pair{} or {C:attention}Full House{}',
             'played mirrored, {C:red}+14{} Mult',
-            '{C:inactive}(ex: 10, 4, 4, 10)'
+            '{C:inactive}(ex: 10, 4, 4, 4, 10 or 3, 7, 7, 3)',
+            '{C:attention}Outliers must be outside the mirror',
+            '{C:inactive}(ex: 9, 5, 5, 9, 1 or 1, 9, 5, 5, 9)',
         }
     },
     blueprint_compat = true,
@@ -3288,11 +3273,56 @@ SMODS.Joker {
     pools = { ["Jambatro"] = true },
 
     calculate = function(self, card, context)
-        if context.joker_main and #context.scoring_hand == 4 and context.scoring_hand[1]:get_id() == context.scoring_hand[4]:get_id() then
-            if context.scoring_hand[2]:get_id() == context.scoring_hand[3]:get_id() then
+        if context.joker_main then
+            if #context.scoring_hand == 4 and context.scoring_hand[1]:get_id() == context.scoring_hand[4]:get_id() and 
+            context.scoring_hand[2]:get_id() == context.scoring_hand[3]:get_id() then
                 return {
                     mult = 14
                 }
+            end
+            if #context.scoring_hand == 5 and 
+            context.scoring_hand[1]:get_id() == context.scoring_hand[5]:get_id() and 
+            context.scoring_hand[2]:get_id() == context.scoring_hand[3]:get_id() and 
+            context.scoring_hand[3]:get_id() == context.scoring_hand[4]:get_id() then
+                return {
+                    mult = 14
+                }
+            end
+            local mirrored = false
+            if next(context.poker_hands['Two Pair']) and not next(context.poker_hands['Full House']) then
+                local playedranks = {}
+                for i = 1, #context.scoring_hand do
+                    playedranks[#playedranks+1] = context.scoring_hand[i]:get_id()
+                end
+                local leastcommonrank = 0
+                local lastcount = 100
+                for i = 1, #playedranks do
+                    local counter = 0
+                    for p = 1, #playedranks do
+                        if playedranks[i] == playedranks[p] then counter = counter + 1 end
+                    end
+                    if counter < lastcount then
+                        leastcommonrank = playedranks[i]
+                        lastcount = counter
+                    end
+                end
+                if #context.scoring_hand == 5 and context.scoring_hand[1]:get_id() == context.scoring_hand[4]:get_id() and 
+                context.scoring_hand[2]:get_id() == context.scoring_hand[3]:get_id() and context.scoring_hand[5] == leastcommonrank then
+                    return {
+                        mult = 14
+                    }
+                end
+                if #context.scoring_hand == 5 and context.scoring_hand[2]:get_id() == context.scoring_hand[5]:get_id() and 
+                context.scoring_hand[3]:get_id() == context.scoring_hand[4]:get_id() and context.scoring_hand[1] == leastcommonrank then
+                    return {
+                        mult = 14
+                    }
+                end
+                if #context.scoring_hand == 6 and not context.blueprint then
+                    return {
+                        message = 'Go fuck yourself'
+                    }
+                end
             end
         end
     end
@@ -4149,7 +4179,7 @@ SMODS.Joker{
         }
     },
     blueprint_compat = true,
-    rarity = 2,
+    rarity = 3,
     cost = 6,
     discovered = true,
     eternal_compat = true,
@@ -4928,8 +4958,29 @@ SMODS.Consumable {
             end
         }))
 
-        local card2rank = G.hand.highlighted[2]:get_id()
-        local card3rank = G.hand.highlighted[3]:get_id()
+        local rightmost = G.hand.highlighted[1]
+        for i = 1, #G.hand.highlighted do
+            if G.hand.highlighted[i].T.x > rightmost.T.x then
+                rightmost = G.hand.highlighted[i]
+            end
+        end
+
+        local leftmost = G.hand.highlighted[#G.hand.highlighted]
+        for i = 1, #G.hand.highlighted do
+            if G.hand.highlighted[i].T.x < leftmost.T.x then
+                leftmost = G.hand.highlighted[i]
+            end
+        end
+
+        local middle = G.hand.highlighted[1]
+        for i = 1, #G.hand.highlighted do
+            if G.hand.highlighted[i] ~= rightmost or G.hand.highlighted[i] ~= leftmost then
+                middle = G.hand.highlighted[i]
+            end
+        end
+
+        local card2rank = middle:get_id()
+        local card3rank = leftmost:get_id()
 
         if card2rank > 10 then
             card2rank = 10
@@ -4939,12 +4990,12 @@ SMODS.Consumable {
         end
 
         local card1chips = 0
-        local card2chips = (G.hand.highlighted[2].ability.perma_bonus or 0) + card2rank
-        local card3chips = (G.hand.highlighted[3].ability.perma_bonus or 0) + card3rank
+        local card2chips = (middle.ability.perma_bonus or 0) + card2rank
+        local card3chips = (leftmost.ability.perma_bonus or 0) + card3rank
 
-        G.hand.highlighted[1].ability.perma_bonus = (G.hand.highlighted[1].ability.perma_bonus or 0) + ((card2chips + card3chips)/2)
-        G.hand.highlighted[2].ability.perma_bonus = (G.hand.highlighted[2].ability.perma_bonus or 0) + -(card2chips/2)
-        G.hand.highlighted[3].ability.perma_bonus = (G.hand.highlighted[3].ability.perma_bonus or 0) + -(card3chips/2)
+        rightmost.ability.perma_bonus = (rightmost.ability.perma_bonus or 0) + ((card2chips + card3chips)/2)
+        middle.ability.perma_bonus = (middle.ability.perma_bonus or 0) + -(card2chips/2)
+        leftmost.ability.perma_bonus = (leftmost.ability.perma_bonus or 0) + -(card3chips/2)
 
         SMODS.calculate_effect({message = "Transfer!"}, card)
 
@@ -5265,10 +5316,10 @@ SMODS.Consumable {
     loc_txt = {
         name = 'Spider',
         text = {
-            'Level up most played',
-            'hand by 1 level plus',
-            'an additional level',
-            'for every Fly in your',
+            'Level up {C:attention}most played',
+            'hand by {C:attention}1{} level plus',
+            'an {C:attention}additional{} level',
+            'for every {C:attention}Fly{} in your',
             'consumeables'
         }
     },
