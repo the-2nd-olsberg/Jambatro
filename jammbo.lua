@@ -48,6 +48,14 @@ SMODS.Atlas {
     py = 95
 }
 
+SMODS.Atlas {
+    key = 'jam_blinds',
+    path = 'blinds.png',
+    px = 34,
+    py = 34,
+    atlas_table = 'ANIMATION_ATLAS', frames = 1
+}
+
 --Pools
 SMODS.ObjectType({
 	key = "Jambatro",
@@ -99,7 +107,7 @@ SMODS.Enhancement {
     loc_txt = {
         name = "Diamond Card",
         text = {
-            "{X:chips,C:white} X#1# {} Mult",
+            "{X:chips,C:white} X#1# {} Chips",
             "while this card",
             "stays in hand",
         }
@@ -180,8 +188,11 @@ SMODS.Joker {
     loc_txt = {
         name = "Amplifier",
         text = {
-            'If scored Chips is',
-            'below {C:blue}#1#{}, {X:red,C:white}X#2#{} Mult',
+            '{X:red,C:white}X#2#{} Mult',
+            '{X:red,C:white}X#3#{} Mult for every Chip',
+            'difference between the current',
+            '{C:chips}Hand Chips{} when triggered and {C:attention}#1#{}',
+            '{C:inactive}(Ex:{} {C:chips}80{} {C:inactive}hand chips ={} {X:red,C:white}X2.4{} {C:inactive}Mult)',
         }
     },
     blueprint_compat = true,
@@ -193,18 +204,19 @@ SMODS.Joker {
     atlas = 'Jammbo',
     pos = { x = 0, y = 0 },
     pools = { ["Jambatro"] = true },
-    config = { extra = { threshold = 50, xmult = 3 } },
+
+    config = { extra = { threshold = 150, xmult = 1, xmult_gain = 0.02 } },
 
     loc_vars = function(self, info_queue, card)
-        return {
-            vars = { card.ability.extra.threshold, card.ability.extra.xmult }
-        }
+        return { vars = { card.ability.extra.threshold, card.ability.extra.xmult, card.ability.extra.xmult_gain } }
     end,
 
     calculate = function(self, card, context)
-        if context.final_scoring_step then
+        if context.joker_main then
             if hand_chips < card.ability.extra.threshold then
-                return { xmult = card.ability.extra.xmult }
+                return {
+                    xmult = ((card.ability.extra.threshold - hand_chips) * card.ability.extra.xmult_gain) + 1
+                }
             end
         end
     end
@@ -369,7 +381,7 @@ SMODS.Joker {
         text = {
             '{C:red}+#3#{} Mult',
             '{C:green}#1# in #2#{} chance of',
-            'losing {C:red}3{} Mult'
+            'losing {C:red}+3{} Mult'
         }
     },
     blueprint_compat = true,
@@ -562,7 +574,7 @@ SMODS.Joker {
     pos = { x = 5, y = 2 },
     pools = { ["Jambatro"] = true },
 
-    config = { extra = { mult = 1 } },
+    config = { extra = { mult_amount = 12 } },
 
     loc_vars = function(self, info_queue, card)
         local eight_tally = 0
@@ -596,7 +608,7 @@ SMODS.Joker {
         text = {
             'Every played {C:attention}King{}',
             'has a {C:green}#1# in #2#{} chance',
-            'of giving {X:red,C:white}X2{} Mult'
+            'of giving {X:red,C:white}X#3#{} Mult'
         }
     },
     blueprint_compat = true,
@@ -633,8 +645,8 @@ SMODS.Joker {
         name = "Awkward Joker",
         text = {
             '{C:red}+3{} Mult for each',
-            'empty hand slot',
-            '{C:inactive}(ex: Pair = +9 Mult)'
+            'empty playedhand slot',
+            '{C:inactive}(ex: Pair = {}{C:mult}+9{}{C:inactive} Mult)'
         }
     },
     blueprint_compat = true,
@@ -656,7 +668,7 @@ SMODS.Joker {
     calculate = function(self, card, context)
         if context.joker_main then
             return {
-                mult = card.ability.extra.mult * (G.GAME.starting_params.hand_size - #context.full_hand)
+                mult = card.ability.extra.mult * (G.GAME.starting_params.play_limit - #context.full_hand)
             }
         end
     end
@@ -913,10 +925,10 @@ SMODS.Joker{
     loc_txt = {
         name = 'Corrupted Data',
         text = {
-            'All played {C:attention}cards{}',
-            'score a {C:green}random{} amount of Chips and',
-            'gain between {C:chips}+#1#{} and',
-            '{C:chips}#2#{} Chips {C:attention}permenantly{}',
+            'All played {C:attention}cards{} score',
+            'a {C:green}random{} amount of Chips and',
+            'gain between {C:chips}+#1#{} and {C:chips}#2#{} ',
+            'Chips {C:attention}permenantly{}',
         }
     },
     blueprint_compat = false,
@@ -993,7 +1005,7 @@ SMODS.Joker {
             '{X:chips,C:white}X2{} Chips! Each correct',
             'digit gives {C:chips}+50{} Chips',
             '{C:inactive}(Next digit: {C:attention}#2#{}{C:inactive}){}',
-            '{C:inactive}Can count multiple digits per round{}'
+            '{C:inactive}Can count multiple digits per hand{}'
         }
     },
     blueprint_compat = true,
@@ -1025,12 +1037,6 @@ SMODS.Joker {
             return {
                 chips = card.ability.extra.chips,
                 message = "Well, thats easy to remember!",
-            }
-        end
-        if context.individual and context.cardarea == G.play and card.ability.extra.digit < 20 and (context.other_card:get_id() == digits[card.ability.extra.digit]) 
-        and context.blueprint then
-            return {
-                chips = card.ability.extra.chips,
             }
         end
 
@@ -1186,7 +1192,7 @@ SMODS.Joker {
             '{C:green}#3# in #5#{} chance of having',
             'a {C:attention}fatal heart attack{}',
             '{C:inactive}(Currently {}{C:red}+#3#{}{C:inactive} Mult){}',
-            '{C:inactive}Chance of heart attack increases with mult'
+            '{C:inactive}Chance of heart attack increases with Mult'
         }
     },
     blueprint_compat = true,
@@ -2396,6 +2402,8 @@ SMODS.Joker {
         text = {
             'Destroys all played {C:attention}cards{} until',
             '{C:attention}deck{} size is {C:attention}#1#{} cards',
+            'When {C:purple}balanced{}, {X:mult,C:white}X#3#{} for',
+            'every {C:attention}Hand{} you have left'
         }
     },
     blueprint_compat = true,
@@ -2408,15 +2416,16 @@ SMODS.Joker {
     pos = { x = 4, y = 4 },
     soul_pos = { x = 9, y = 0 },
 
-    config = { extra = { preferred_size = 26, difference = 0 } },
+    config = { extra = { preferred_size = 26, difference = 0, balanced = false, xmult = 1 } },
 
     loc_vars = function(self, info_queue, card)
-        return { vars = { card.ability.extra.preferred_size, card.ability.extra.difference } }
+        return { vars = { card.ability.extra.preferred_size, card.ability.extra.difference, card.ability.extra.xmult } }
     end,
 
     calculate = function(self, card, context)
         if card.ability.extra.difference <= 0 then
             if context.after then
+                card.ability.extra.balanced = true
                 return {
                     message = 'Perfectly balanced'
                 }
@@ -2424,11 +2433,17 @@ SMODS.Joker {
         else
             for i = 1, card.ability.extra.difference do
                 if context.destroy_card and context.cardarea == G.play and not context.blueprint then
+                    card.ability.extra.balanced = false
                     return {
                         remove = true
                     }
                 end
             end
+        end
+        if context.joker_main and card.ability.extra.balanced == true then
+            return {
+                xmult = (1 + G.GAME.current_round.hands_left) * card.ability.extra.xmult
+            }
         end
     end,
 
@@ -2464,17 +2479,20 @@ SMODS.Joker {
     pools = { ["Jambatro"] = true },
 
     calculate = function(self, card, context)
-        if context.joker_main then
-            if context.full_hand[1]:get_id() + 1 == context.full_hand[2]:get_id() then
-                if context.full_hand[2]:get_id() + 1 == context.full_hand[3]:get_id() then
-                    if context.full_hand[3]:get_id() + 1 == context.full_hand[4]:get_id() then
-                        if context.full_hand[4]:get_id() + 1 == context.full_hand[5]:get_id() then
-                            return {
-                                mult = 13
-                            }
-                        end
-                    end
+        if context.joker_main and next(context.poker_hands['Straight']) then
+            local backwards = true
+            local rankpr = 0
+            for i = 1, #G.play.cards do
+                local rank = G.play.cards[i]:get_id()
+                if rank < rankpr then
+                    backwards = false
                 end
+                rankpr = rank
+            end
+            if backwards == true then
+                return {
+                    mult = 13
+                }
             end
         end
     end
@@ -2555,7 +2573,8 @@ SMODS.Joker {
         text = {
             'Sell this joker for',
             'a {C:green}#1# in #2#{} chance of creating',
-            'a {C:purple}Legendary{} Joker'
+            'a {C:purple}Legendary{} Joker, or else',
+            'creates a {C:blue}Common{} Joker'
         }
     },
     blueprint_compat = true,
@@ -2587,6 +2606,18 @@ SMODS.Joker {
                         play_sound('timpani')
                         SMODS.add_card({ set = 'Joker', legendary = true })
                         check_for_unlock { type = 'spawn_legendary' }
+                        card:juice_up(0.3, 0.5)
+                        return true
+                    end
+                }))
+            else
+                G.E_MANAGER:add_event(Event({
+                    trigger = 'after',
+                    delay = 0.4,
+                    func = function()
+                        card:remove()
+                        play_sound('timpani')
+                        SMODS.add_card({ set = 'Joker', rarity = 'Common' })
                         card:juice_up(0.3, 0.5)
                         return true
                     end
@@ -3758,278 +3789,260 @@ SMODS.Joker {
     end
 }
 
--- SMODS.Joker {
---     key = "jam_wordle",
---     loc_txt = {
---         name = 'Cardle',
---         text = {
---             -- '#1# #2# #3# #4# #5#',
---             '{s:2}{B:1,C:white}#6#{} {B:2,C:white}#7#{} {B:3,C:white}#8#{} {B:4,C:white}#9#{} {B:5,C:white}#10#{}{}',
---             '{s:2}{B:6,C:white}#11#{} {B:7,C:white}#12#{} {B:8,C:white}#13#{} {B:9,C:white}#14#{} {B:10,C:white}#15#{}{}',
---             '{s:2}{B:11,C:white}#16#{} {B:12,C:white}#17#{} {B:13,C:white}#18#{} {B:14,C:white}#19#{} {B:15,C:white}#20#{}{}',
---             '{s:2}{B:16,C:white}#21#{} {B:17,C:white}#22#{} {B:18,C:white}#23#{} {B:19,C:white}#24#{} {B:20,C:white}#25#{}{}',
---             '{s:2}{B:21,C:white}#26#{} {B:22,C:white}#27#{} {B:23,C:white}#28#{} {B:24,C:white}#29#{} {B:25,C:white}#30#{}{}',
---             '{s:2}{B:26,C:white}#31#{} {B:27,C:white}#32#{} {B:28,C:white}#33#{} {B:29,C:white}#34#{} {B:30,C:white}#35#{}{}',
---             ' ',
---             'Play {C:attention}5{} cards to attempt',
---             ' ',
---             '{C:red}+#36#{} Mult for each',
---             '{C:green}correct Placement{} in last attempt',
---             ' ',
---             '{C:chips}+#37#{} Chips for each',
---             '{C:attention}correct Guess{} in last attempt',
---             ' ',
---             '{X:red,C:white}X#38#{} Mult when board {C:green}Completed'
---         }
---     },
---     blueprint_compat = true,
---     rarity = 1,
---     cost = 7,
---     discovered = true,
---     eternal_compat = true,
---     perishable_compat = false,
---     atlas = 'Jammbo',
---     pos = { x = 3, y = 6 },
---     pools = { ["Jambatro"] = true },
+SMODS.Joker {
+    key = "jam_wordle",
+    loc_txt = {
+        name = 'Cardle',
+        text = {
+            --'#1# #2# #3# #4# #5#',
+            '{s:2}{B:1,C:white}#6#{} {B:2,C:white}#7#{} {B:3,C:white}#8#{} {B:4,C:white}#9#{} {B:5,C:white}#10#{}{}',
+            '{s:2}{B:6,C:white}#11#{} {B:7,C:white}#12#{} {B:8,C:white}#13#{} {B:9,C:white}#14#{} {B:10,C:white}#15#{}{}',
+            '{s:2}{B:11,C:white}#16#{} {B:12,C:white}#17#{} {B:13,C:white}#18#{} {B:14,C:white}#19#{} {B:15,C:white}#20#{}{}',
+            '{s:2}{B:16,C:white}#21#{} {B:17,C:white}#22#{} {B:18,C:white}#23#{} {B:19,C:white}#24#{} {B:20,C:white}#25#{}{}',
+            '{s:2}{B:21,C:white}#26#{} {B:22,C:white}#27#{} {B:23,C:white}#28#{} {B:24,C:white}#29#{} {B:25,C:white}#30#{}{}',
+            '{s:2}{B:26,C:white}#31#{} {B:27,C:white}#32#{} {B:28,C:white}#33#{} {B:29,C:white}#34#{} {B:30,C:white}#35#{}{}',
+            ' ',
+            'Play {C:attention}5{} cards to attempt',
+            ' ',
+            '{C:red}+#36#{} Mult for each',
+            '{C:green}correct Placement{} in last attempt',
+            ' ',
+            '{C:chips}+#37#{} Chips for each',
+            '{C:attention}correct Guess{} in last attempt',
+            ' ',
+            '{X:red,C:white}X#38#{} Mult if board {C:green}Completed'
+        }
+    },
+    blueprint_compat = true,
+    rarity = 1,
+    cost = 7,
+    discovered = true,
+    eternal_compat = true,
+    perishable_compat = false,
+    atlas = 'Jammbo',
+    pos = { x = 3, y = 6 },
+    pools = { ["Jambatro"] = true },
 
---     config = { extra = {
---         tries = 0,
+    config = { extra = {
+        tries = 0,
+        max = 6,
 
---         grey = '8f8f8f',
---         yellow = 'ffdd57',
---         green = '8ac486',
+        grey = '8f8f8f',
+        yellow = 'ffdd57',
+        green = '8ac486',
 
---         string = {1, 2, 3, 4, 5},
+        string = {1, 2, 3, 4, 5},
 
---         lines = {
---             {'#', '#', '#', '#', '#'},
---             {'#', '#', '#', '#', '#'},
---             {'#', '#', '#', '#', '#'},
---             {'#', '#', '#', '#', '#'},
---             {'#', '#', '#', '#', '#'},
---             {'#', '#', '#', '#', '#'},
---             {'#', '#', '#', '#', '#'},
---         },
---         lines_c = {
---             {'8f8f8f', '8f8f8f', '8f8f8f', '8f8f8f', '8f8f8f'},
---             {'8f8f8f', '8f8f8f', '8f8f8f', '8f8f8f', '8f8f8f'},
---             {'8f8f8f', '8f8f8f', '8f8f8f', '8f8f8f', '8f8f8f'},
---             {'8f8f8f', '8f8f8f', '8f8f8f', '8f8f8f', '8f8f8f'},
---             {'8f8f8f', '8f8f8f', '8f8f8f', '8f8f8f', '8f8f8f'},
---             {'8f8f8f', '8f8f8f', '8f8f8f', '8f8f8f', '8f8f8f'},
---         },
+        lines = {
+            {'#', '#', '#', '#', '#'},
+            {'#', '#', '#', '#', '#'},
+            {'#', '#', '#', '#', '#'},
+            {'#', '#', '#', '#', '#'},
+            {'#', '#', '#', '#', '#'},
+            {'#', '#', '#', '#', '#'},
+            {'#', '#', '#', '#', '#'},
+        },
+        display = {
+            {'#', '#', '#', '#', '#'},
+            {'#', '#', '#', '#', '#'},
+            {'#', '#', '#', '#', '#'},
+            {'#', '#', '#', '#', '#'},
+            {'#', '#', '#', '#', '#'},
+            {'#', '#', '#', '#', '#'},
+            {'#', '#', '#', '#', '#'},
+        },
+        lines_c = {
+            {'8f8f8f', '8f8f8f', '8f8f8f', '8f8f8f', '8f8f8f'},
+            {'8f8f8f', '8f8f8f', '8f8f8f', '8f8f8f', '8f8f8f'},
+            {'8f8f8f', '8f8f8f', '8f8f8f', '8f8f8f', '8f8f8f'},
+            {'8f8f8f', '8f8f8f', '8f8f8f', '8f8f8f', '8f8f8f'},
+            {'8f8f8f', '8f8f8f', '8f8f8f', '8f8f8f', '8f8f8f'},
+            {'8f8f8f', '8f8f8f', '8f8f8f', '8f8f8f', '8f8f8f'},
+            {'8f8f8f', '8f8f8f', '8f8f8f', '8f8f8f', '8f8f8f'},
+        },
 
---         completed = false,
+        mult = 5,
+        chips = 20,
+        xmult = 2,
 
---         finished = false,
+        completed = false
+    } },
 
---         mult = 5,
---         chips = 20,
---         xmult = 2
---     } },
-
---     loc_vars = function(self, info_queue, card)
---         return { vars = {
---             card.ability.extra.string[1],
---             card.ability.extra.string[2],
---             card.ability.extra.string[3],
---             card.ability.extra.string[4],
---             card.ability.extra.string[5],
+    loc_vars = function(self, info_queue, card)
+        return { vars = {
+            card.ability.extra.string[1],
+            card.ability.extra.string[2],
+            card.ability.extra.string[3],
+            card.ability.extra.string[4],
+            card.ability.extra.string[5],
             
---             colours= {
---                 HEX(card.ability.extra.lines_c[1][1]),
---                 HEX(card.ability.extra.lines_c[1][2]),
---                 HEX(card.ability.extra.lines_c[1][3]),
---                 HEX(card.ability.extra.lines_c[1][4]),
---                 HEX(card.ability.extra.lines_c[1][5]),
+            colours= {
+                HEX(card.ability.extra.lines_c[1][1]),
+                HEX(card.ability.extra.lines_c[1][2]),
+                HEX(card.ability.extra.lines_c[1][3]),
+                HEX(card.ability.extra.lines_c[1][4]),
+                HEX(card.ability.extra.lines_c[1][5]),
 
---                 HEX(card.ability.extra.lines_c[2][1]),
---                 HEX(card.ability.extra.lines_c[2][2]),
---                 HEX(card.ability.extra.lines_c[2][3]),
---                 HEX(card.ability.extra.lines_c[2][4]),
---                 HEX(card.ability.extra.lines_c[2][5]),
+                HEX(card.ability.extra.lines_c[2][1]),
+                HEX(card.ability.extra.lines_c[2][2]),
+                HEX(card.ability.extra.lines_c[2][3]),
+                HEX(card.ability.extra.lines_c[2][4]),
+                HEX(card.ability.extra.lines_c[2][5]),
                 
---                 HEX(card.ability.extra.lines_c[3][1]),
---                 HEX(card.ability.extra.lines_c[3][2]),
---                 HEX(card.ability.extra.lines_c[3][3]),
---                 HEX(card.ability.extra.lines_c[3][4]),
---                 HEX(card.ability.extra.lines_c[3][5]),
+                HEX(card.ability.extra.lines_c[3][1]),
+                HEX(card.ability.extra.lines_c[3][2]),
+                HEX(card.ability.extra.lines_c[3][3]),
+                HEX(card.ability.extra.lines_c[3][4]),
+                HEX(card.ability.extra.lines_c[3][5]),
 
---                 HEX(card.ability.extra.lines_c[4][1]),
---                 HEX(card.ability.extra.lines_c[4][2]),
---                 HEX(card.ability.extra.lines_c[4][3]),
---                 HEX(card.ability.extra.lines_c[4][4]),
---                 HEX(card.ability.extra.lines_c[4][5]),
+                HEX(card.ability.extra.lines_c[4][1]),
+                HEX(card.ability.extra.lines_c[4][2]),
+                HEX(card.ability.extra.lines_c[4][3]),
+                HEX(card.ability.extra.lines_c[4][4]),
+                HEX(card.ability.extra.lines_c[4][5]),
 
---                 HEX(card.ability.extra.lines_c[5][1]),
---                 HEX(card.ability.extra.lines_c[5][2]),
---                 HEX(card.ability.extra.lines_c[5][3]),
---                 HEX(card.ability.extra.lines_c[5][4]),
---                 HEX(card.ability.extra.lines_c[5][5]),
+                HEX(card.ability.extra.lines_c[5][1]),
+                HEX(card.ability.extra.lines_c[5][2]),
+                HEX(card.ability.extra.lines_c[5][3]),
+                HEX(card.ability.extra.lines_c[5][4]),
+                HEX(card.ability.extra.lines_c[5][5]),
 
---                 HEX(card.ability.extra.lines_c[6][1]),
---                 HEX(card.ability.extra.lines_c[6][2]),
---                 HEX(card.ability.extra.lines_c[6][3]),
---                 HEX(card.ability.extra.lines_c[6][4]),
---                 HEX(card.ability.extra.lines_c[6][5]),
---             },
+                HEX(card.ability.extra.lines_c[6][1]),
+                HEX(card.ability.extra.lines_c[6][2]),
+                HEX(card.ability.extra.lines_c[6][3]),
+                HEX(card.ability.extra.lines_c[6][4]),
+                HEX(card.ability.extra.lines_c[6][5]),
+                
+                HEX(card.ability.extra.lines_c[7][1]),
+                HEX(card.ability.extra.lines_c[7][2]),
+                HEX(card.ability.extra.lines_c[7][3]),
+                HEX(card.ability.extra.lines_c[7][4]),
+                HEX(card.ability.extra.lines_c[7][5]),
+            },
 
---             card.ability.extra.lines[1][1],
---             card.ability.extra.lines[1][2],
---             card.ability.extra.lines[1][3],
---             card.ability.extra.lines[1][4],
---             card.ability.extra.lines[1][5],
+            card.ability.extra.display[1][1],
+            card.ability.extra.display[1][2],
+            card.ability.extra.display[1][3],
+            card.ability.extra.display[1][4],
+            card.ability.extra.display[1][5],
 
---             card.ability.extra.lines[2][1],
---             card.ability.extra.lines[2][2],
---             card.ability.extra.lines[2][3],
---             card.ability.extra.lines[2][4],
---             card.ability.extra.lines[2][5],
+            card.ability.extra.display[2][1],
+            card.ability.extra.display[2][2],
+            card.ability.extra.display[2][3],
+            card.ability.extra.display[2][4],
+            card.ability.extra.display[2][5],
 
---             card.ability.extra.lines[3][1],
---             card.ability.extra.lines[3][2],
---             card.ability.extra.lines[3][3],
---             card.ability.extra.lines[3][4],
---             card.ability.extra.lines[3][5],
+            card.ability.extra.display[3][1],
+            card.ability.extra.display[3][2],
+            card.ability.extra.display[3][3],
+            card.ability.extra.display[3][4],
+            card.ability.extra.display[3][5],
 
---             card.ability.extra.lines[4][1],
---             card.ability.extra.lines[4][2],
---             card.ability.extra.lines[4][3],
---             card.ability.extra.lines[4][4],
---             card.ability.extra.lines[4][5],
+            card.ability.extra.display[4][1],
+            card.ability.extra.display[4][2],
+            card.ability.extra.display[4][3],
+            card.ability.extra.display[4][4],
+            card.ability.extra.display[4][5],
 
---             card.ability.extra.lines[5][1],
---             card.ability.extra.lines[5][2],
---             card.ability.extra.lines[5][3],
---             card.ability.extra.lines[5][4],
---             card.ability.extra.lines[5][5],
+            card.ability.extra.display[5][1],
+            card.ability.extra.display[5][2],
+            card.ability.extra.display[5][3],
+            card.ability.extra.display[5][4],
+            card.ability.extra.display[5][5],
 
---             card.ability.extra.lines[6][1],
---             card.ability.extra.lines[6][2],
---             card.ability.extra.lines[6][3],
---             card.ability.extra.lines[6][4],
---             card.ability.extra.lines[6][5],
+            card.ability.extra.display[6][1],
+            card.ability.extra.display[6][2],
+            card.ability.extra.display[6][3],
+            card.ability.extra.display[6][4],
+            card.ability.extra.display[6][5],
 
---             card.ability.extra.mult,
---             card.ability.extra.chips,
---             card.ability.extra.xmult,
---         } }
---     end,
+            card.ability.extra.mult,
+            card.ability.extra.chips,
+            card.ability.extra.xmult,
+        } }
+    end,
 
---     calculate = function(self, card, context)
---         if card.ability.extra.tries == 7 then
---             card.ability.extra.finished = true
---             for i = 1, 5 do
---                 card.ability.extra.lines[7][i] = card.ability.extra.lines[6][i]
---             end
---         end
---         if context.before and not context.blueprint and #context.full_hand == 5 then
---             if card.ability.extra.completed == false and card.ability.extra.finished == false then
---                 SMODS.calculate_effect({message = "Update!"}, card)
---                 card.ability.extra.tries = card.ability.extra.tries + 1
---             end
---         end
---         if context.individual and context.cardarea == G.play and context.other_card and #context.full_hand == 5 and not context.blueprint then
---             if card.ability.extra.completed == false then
---                 if card.ability.extra.finished == false then
---                     for i = 1, #context.full_hand do
---                         if card.ability.extra.finished == false then
---                             if context.full_hand[i]:get_id() >= 2 and context.full_hand[i]:get_id() <= 10 then
---                                 card.ability.extra.lines[card.ability.extra.tries][i] = context.full_hand[i]:get_id()
---                             else
---                                 if context.full_hand[i]:get_id() == 11 then
---                                     card.ability.extra.lines[card.ability.extra.tries][i] = 'J'
---                                 end
---                                 if context.full_hand[i]:get_id() == 12 then
---                                     card.ability.extra.lines[card.ability.extra.tries][i] = 'Q'
---                                 end
---                                 if context.full_hand[i]:get_id() == 13 then
---                                     card.ability.extra.lines[card.ability.extra.tries][i] = 'K'
---                                 end
---                                 if context.full_hand[i]:get_id() == 14 then
---                                     card.ability.extra.lines[card.ability.extra.tries][i] = 'A'
---                                 end
---                             end
---                             for p = 1, #card.ability.extra.string do
---                                 if card.ability.extra.string[p] == context.full_hand[i]:get_id() then
---                                     if i ~= p then
---                                         card.ability.extra.lines_c[card.ability.extra.tries][i] = card.ability.extra.yellow
---                                     else
---                                         card.ability.extra.lines_c[card.ability.extra.tries][i] = card.ability.extra.green
---                                     end
---                                 end
---                             end
---                         end
---                     end
---                     local correct = 0
---                     for i = 1, #context.full_hand do
---                         if context.full_hand[i]:get_id() == card.ability.extra.string[i] then
---                             correct = correct + 1
---                             card.ability.extra.lines_c[card.ability.extra.tries][i] = card.ability.extra.green
---                         end
---                     end
---                     if correct == 5 then
---                         card.ability.extra.completed = true
---                         SMODS.calculate_effect({message = "Got it!"}, card)
---                     end
---                 end
---             end
---         end
---         if context.joker_main then
---             local multrelease = 0
---             local chiprelease = 0
---             local temptable = {0, 0, 0, 0, 0}
---             for i = 1, #temptable do
---                 if type(card.ability.extra.lines[card.ability.extra.tries][i]) == "string" then
---                     if card.ability.extra.lines[card.ability.extra.tries][i] == 'J' then
---                         temptable[i] = 11
---                     end
---                     if card.ability.extra.lines[card.ability.extra.tries][i] == 'Q' then
---                         temptable[i] = 12
---                     end
---                     if card.ability.extra.lines[card.ability.extra.tries][i] == 'K' then
---                         temptable[i] = 13
---                     end
---                     if card.ability.extra.lines[card.ability.extra.tries][i] == 'A' then
---                         temptable[i] = 14
---                     end
---                 else
---                     if card.ability.extra.lines[card.ability.extra.tries][i] >= 2 and card.ability.extra.lines[card.ability.extra.tries][i] <= 10 then
---                         temptable[i] = card.ability.extra.lines[card.ability.extra.tries][i]
---                     end
---                 end
---             end
---             for i = 1, #context.full_hand do
---                 for p = 1, #card.ability.extra.string do
---                     if card.ability.extra.string[p] == temptable[i] then
---                         if i ~= p then
---                             chiprelease = chiprelease + 1
---                         else
---                             multrelease = multrelease + 1
---                         end
---                     end
---                 end
---             end
---             if card.ability.extra.completed == false then
---                 return {
---                     chips = (chiprelease * card.ability.extra.chips),
---                     mult = (multrelease * card.ability.extra.mult)
---                 }
---             else
---                 return {
---                     mult = (5 * card.ability.extra.mult),
---                     xmult = card.ability.extra.xmult
---                 }
---             end
---         end
---     end,
+    calculate = function(self, card, context)
+        if context.before and #context.full_hand == 5 and context.main_eval and not context.blueprint and card.ability.extra.completed == false and not context.debuffed_hand then
+            card.ability.extra.tries = card.ability.extra.tries + 1
+            if card.ability.extra.tries >= 7 then
+                card.ability.extra.tries = 7
+            end
+            if card.ability.extra.tries <= card.ability.extra.max then
+                for _, played_card in ipairs(context.full_hand) do
+                    card.ability.extra.lines[card.ability.extra.tries][_] = played_card:get_id()
+                end
+                for i = 1, #context.full_hand do
+                    for p = 1, #card.ability.extra.string do
+                        if card.ability.extra.string[p] == card.ability.extra.lines[card.ability.extra.tries][i] then
+                            card.ability.extra.lines_c[card.ability.extra.tries][i] = card.ability.extra.yellow
+                        end
+                    end
+                end
+                for i = 1, #context.full_hand do
+                    if card.ability.extra.string[i] == card.ability.extra.lines[card.ability.extra.tries][i] then
+                        card.ability.extra.lines_c[card.ability.extra.tries][i] = card.ability.extra.green
+                    end
+                end
+            end
+        end
+        if context.joker_main then
+            if card.ability.extra.tries > 0 then
+                local green = 0
+                local yellow = 0
+                local complete = 1
+                for i = 1, #card.ability.extra.lines_c[card.ability.extra.tries] do
+                    if card.ability.extra.lines_c[card.ability.extra.tries][i] == card.ability.extra.green then
+                        green = green + 1
+                    end
+                    if card.ability.extra.lines_c[card.ability.extra.tries][i] == card.ability.extra.yellow then
+                        yellow = yellow + 1
+                    end
+                end
+                if green == 5 then
+                    complete = complete + 1
+                    card.ability.extra.completed = true
+                end
+                return {
+                    chips = card.ability.extra.chips * yellow,
+                    mult = card.ability.extra.mult * green,
+                    xmult = complete
+                }
+            end
+        end
+    end,
 
---     add_to_deck = function(self, card, from_debuff)
---         for i = 1, #card.ability.extra.string do
---             card.ability.extra.string[i] = math.random(2, 14)
---         end
---     end,
--- }
+    add_to_deck = function(self, card, from_debuff)
+        for i = 1, #card.ability.extra.string do
+            card.ability.extra.string[i] = pseudorandom('wordle', 2, 14)
+        end
+    end,
+
+    update = function(self, card, dt)
+        if card.ability.extra.tries > 0 and card.ability.extra.tries < 7 then
+            for i = 1, #card.ability.extra.lines[card.ability.extra.tries] do
+                if card.ability.extra.lines[card.ability.extra.tries][i] >= 2 and card.ability.extra.lines[card.ability.extra.tries][i] <= 10 then
+                    card.ability.extra.display[card.ability.extra.tries][i] = card.ability.extra.lines[card.ability.extra.tries][i]
+                else
+                    if card.ability.extra.lines[card.ability.extra.tries][i] == 11 then
+                        card.ability.extra.display[card.ability.extra.tries][i] = 'J'
+                    end
+                    if card.ability.extra.lines[card.ability.extra.tries][i] == 12 then
+                        card.ability.extra.display[card.ability.extra.tries][i] = 'Q'
+                    end
+                    if card.ability.extra.lines[card.ability.extra.tries][i] == 13 then
+                        card.ability.extra.display[card.ability.extra.tries][i] = 'K'
+                    end
+                    if card.ability.extra.lines[card.ability.extra.tries][i] == 14 then
+                        card.ability.extra.display[card.ability.extra.tries][i] = 'A'
+                    end
+                end
+            end
+        end
+        card.ability.extra.lines[7] = card.ability.extra.display[7]
+        card.ability.extra.lines_c[6] = card.ability.extra.lines_c[7]
+    end
+}
 
 SMODS.Joker {
     key = "jam_autism",
@@ -4771,6 +4784,56 @@ SMODS.Joker {
     end
 }
 
+SMODS.Joker {
+    key = "jam_woke",
+    loc_txt = {
+        name = 'Woke Media',
+        text = {
+            '{C:mult}+#1#{} Mult for',
+            'every unique {C:attention}suit{}',
+            'in played hand'
+        }
+    },
+    blueprint_compat = true,
+    rarity = 1,
+    cost = 4,
+    discovered = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    atlas = 'Jammbo',
+    pos = { x = 10, y = 6 },
+    pools = { ["Jambatro"] = true },
+
+    config = { extra = { mult = 5, suits_played = {} } },
+
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.mult } }
+    end,
+
+    calculate = function(self, card, context)
+        if context.before and context.main_eval and not context.blueprint then
+            card.ability.extra.suits_played = {}
+            for _, played_card in ipairs(context.full_hand) do
+                local suit = played_card.base.suit
+                local match = false
+                for i = 1, #card.ability.extra.suits_played do
+                    if card.ability.extra.suits_played[i] == suit then
+                        match = true
+                    end
+                end
+                if match == false then
+                    card.ability.extra.suits_played[#card.ability.extra.suits_played + 1] = suit
+                end
+            end
+        end
+        if context.joker_main then
+            return {
+                mult = card.ability.extra.mult * #card.ability.extra.suits_played
+            }
+        end
+    end
+}
+
 
 
 
@@ -4873,7 +4936,7 @@ SMODS.Consumable {
         text = {
             "Enhances {C:attention}#1#{} selected",
             "cards into",
-            "{C:attention}Enlighhtenend Cards",
+            "{C:attention}Enlightenend Cards",
         }
     },
     set = 'Tarot',
@@ -5345,7 +5408,7 @@ SMODS.Consumable {
             most_played = 'High Card'
         end
         local levels = 1
-        for _, catter in ipairs(SMODS.find_card("c_jammbo_jam_caterpillar")) do
+        for _, catter in ipairs(SMODS.find_card("c_jammbo_jam_fly")) do
             levels = levels + 1
         end
         delay(0.3)
@@ -5354,6 +5417,87 @@ SMODS.Consumable {
     can_use = function(self, card)
         return true
     end,
+}
+
+SMODS.Consumable {
+    key = 'jam_fly',
+    loc_txt = {
+        name = 'Fly',
+        text = {
+            'Level up a {C:attention}random{}',
+            'hand by {C:attention}1{} level'
+        }
+    },
+    set = 'jam_bugs',
+    atlas = 'jam_bugs',
+    pos = { x = 3, y = 1 },
+    discovered = true,
+    pools = { ["jam_buggies"] = true },
+    config = { extra = { levels = 1 } },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { } }
+    end,
+    use = function(self, card, area, copier)
+        delay(0.3)
+        SMODS.smart_level_up_hand(card, pseudorandom_element(G.handlist, 'fliesaresofuckingannoying'), nil, levels)
+    end,
+    can_use = function(self, card)
+        return true
+    end,
+}
+
+
+
+--Boss Blinds
+SMODS.Blind {
+    key = "square",
+    loc_txt = {
+        name = 'The Square',
+        text = {
+            'Must play 4 cards'
+        },
+    },
+    dollars = 5,
+    mult = 2,
+    debuff = { h_size_ge = 4, h_size_le = 4 },
+    atlas = 'jam_blinds',
+    pos = { x = 0, y = 0 },
+    discovered = true,
+    boss = { min = 1 },
+    boss_colour = HEX("2231f1")
+}
+
+SMODS.Blind {
+    key = "joe",
+    loc_txt = {
+        name = 'Performance Drugs',
+        text = {
+            'All cards without enhancements,',
+            'seals or editions are debuffed'
+        },
+    },
+    dollars = 5,
+    mult = 2,
+    atlas = 'jam_blinds',
+    pos = { x = 0, y = 3 },
+    discovered = true,
+    boss = { min = 4 },
+    boss_colour = HEX("b3633a"),
+    calculate = function(self, blind, context)
+        if not blind.disabled then
+            if context.debuff_card and (not context.debuff_card.seal and not context.debuff_card.edition and not next(SMODS.get_enhancements(context.debuff_card))) then
+                return { debuff = true }
+            else
+                return { debuff = false }
+            end
+        end
+    end,
+    disable = function(self)
+        if context.debuff_card and (not context.debuff_card.seal and not context.debuff_card.edition and not next(SMODS.get_enhancements(context.debuff_card))) then
+            return { debuff = false }
+        end
+    end,
+
 }
 
 
@@ -5503,7 +5647,7 @@ SMODS.Booster {
         name = 'Big Bug Pack',
         text = {
             'Choose {C:attention}1{} of',
-            '{C:attention}4{} {C:green}Bug{} Cards'
+            '{C:attention}3{} {C:green}Bug{} Cards'
         },
         group_name = 'under your skin.'
     },
@@ -5514,7 +5658,7 @@ SMODS.Booster {
     discovered = true,
     weight = 5,
     pools = { ["Jamboosters"] = true },
-    config = { extra = 4, choose = 1 },
+    config = { extra = 3, choose = 1 },
     create_card = function(self, card)
         return {set = "jam_buggies", area = G.pack_cards, skip_materialize = true, soulable = false, key_append = "jammbo"}
     end,
@@ -5526,7 +5670,7 @@ SMODS.Booster {
         name = 'Infestation',
         text = {
             'Choose {C:attention}2{} of',
-            '{C:attention}5{} {C:green}Bug{} Cards'
+            '{C:attention}4{} {C:green}Bug{} Cards'
         },
         group_name = 'Crawlies'
     },
@@ -5537,7 +5681,7 @@ SMODS.Booster {
     discovered = true,
     weight = 5,
     pools = { ["Jamboosters"] = true },
-    config = { extra = 5, choose = 2 },
+    config = { extra = 4, choose = 2 },
     create_card = function(self, card)
         return {set = "jam_buggies", area = G.pack_cards, skip_materialize = true, soulable = false, key_append = "jammbo"}
     end,
