@@ -444,7 +444,7 @@ SMODS.Joker {
     config = { extra = { xmult = 1.02 } },
 
     calculate = function (self, card, context)
-        if context.joker_main and #context.scoring_hand <= 1 then
+        if context.joker_main and #context.scoring_hand >= 1 then
             return {
                 xmult = card.ability.extra.xmult
             }
@@ -751,14 +751,14 @@ SMODS.Joker {
             'The faster you play your {C:attention}hand{},',
             'the better rank you get!',
             '--',
-            'S Rank: {X:red,C:white}X1.2{} Mult, {C:red}+15{} Mult',
-            'A Rank: {C:red}+10{} Mult',
-            'B Rank: {C:red}+6{} Mult',
-            'C Rank: {C:red}+4{} Mult',
-            'D Rank: {C:red}+3{} Mult',
-            'E Rank: {C:red}+2{} Mult',
-            'F Rank: {C:red}+1{} Mult',
-            'AFK Rank: {C:blue}+1{} Chip',
+            'S Rank: {X:red,C:white}X#1#{} Mult, {C:red}+#2#{} Mult',
+            'A Rank: {C:red}+#3#{} Mult',
+            'B Rank: {C:red}+#4#{} Mult',
+            'C Rank: {C:red}+#5#{} Mult',
+            'D Rank: {C:red}+#6#{} Mult',
+            'E Rank: {C:red}+#7#{} Mult',
+            'F Rank: {C:red}+#8#{} Mult',
+            'AFK Rank: {C:chips}+#9#{} Chip',
         }
     },
     blueprint_compat = true,
@@ -773,42 +773,39 @@ SMODS.Joker {
 
     config = { 
         extra = { 
-            mult = 50,
-            xmult = 1.2,
-            timer = 0,
-            S_rank = 3,
-            A_rank = 10,
-            B_rank = 15,
-            C_rank = 20,
-            D_rank = 30,
-            E_rank = 40,
-            F_rank = 45,
-            time_spent = 0,
+            S_rank = {3, 1.5, 15},
+            A_rank = {8, 10},
+            B_rank = {15, 6},
+            C_rank = {20, 4},
+            D_rank = {30, 3},
+            E_rank = {40, 2},
+            F_rank = {45, 1},
+            AFK = {46, 1},
             do_reset = 1,
-            in_seconds_kinda = 0
+            starting_time = 0,
+            in_seconds_kinda = 0,
         } 
     },
 
     loc_vars = function(self, info_queue, card)
         return { vars = { 
-            card.ability.extra.mult, 
-            card.ability.extra.xmult,
-            card.ability.extra.time_spent, 
-            card.ability.extra.do_reset,
-            card.ability.extra.S_rank,
-            card.ability.extra.A_rank,
-            card.ability.extra.B_rank,
-            card.ability.extra.C_rank,
-            card.ability.extra.D_rank,
-            card.ability.extra.E_rank,
-            card.ability.extra.F_rank,
+            card.ability.extra.S_rank[2],
+            card.ability.extra.S_rank[3],
+            card.ability.extra.A_rank[2],
+            card.ability.extra.B_rank[2],
+            card.ability.extra.C_rank[2],
+            card.ability.extra.D_rank[2],
+            card.ability.extra.E_rank[2],
+            card.ability.extra.F_rank[2],
+            card.ability.extra.AFK[2],
         } }
     end,
 
     calculate = function(self, card, context)
         if context.hand_drawn then
             if card.ability.extra.do_reset == 1 then
-                card.ability.extra.time_spent = 0
+                card.ability.extra.starting_time = os.time{year=tonumber(os.date("%Y")), month=tonumber(os.date("%m")), day=tonumber(os.date("%d")), 
+                                                           hour=tonumber(os.date("%H")), min=tonumber(os.date("%M")), sec=tonumber(os.date("%S"))}
                 return { message = 'Timer starts now!' }
             else
                 return { message = 'Still counting!' }
@@ -819,63 +816,64 @@ SMODS.Joker {
         end
         if context.joker_main then
             card.ability.extra.do_reset = 1
-            if card.ability.extra.in_seconds_kinda <= card.ability.extra.S_rank then
+            local current_time = os.time{year=tonumber(os.date("%Y")), month=tonumber(os.date("%m")), day=tonumber(os.date("%d")), 
+                                         hour=tonumber(os.date("%H")), min=tonumber(os.date("%M")), sec=tonumber(os.date("%S"))}
+            card.ability.extra.in_seconds_kinda = os.difftime(current_time, card.ability.extra.starting_time)
+            print(card.ability.extra.in_seconds_kinda)
+            if card.ability.extra.in_seconds_kinda <= card.ability.extra.S_rank[1] then
                 return {
-                    xmult = card.ability.extra.xmult,
-                    mult = 15,
+                    xmult = card.ability.extra.S_rank[2],
+                    mult = card.ability.extra.S_rank[3],
                     message = 'S Rank!'
                 }
             end
-            if card.ability.extra.in_seconds_kinda <= card.ability.extra.A_rank then
+            if card.ability.extra.in_seconds_kinda <= card.ability.extra.A_rank[1] then
                 return {
-                    mult = 10,
+                    mult = card.ability.extra.A_rank[2],
                     message = 'A Rank!'
                 }
             end
-            if card.ability.extra.in_seconds_kinda <= card.ability.extra.B_rank then
+            if card.ability.extra.in_seconds_kinda <= card.ability.extra.B_rank[1] then
                 return {
-                    mult = 6,
+                    mult = card.ability.extra.B_rank[2],
                     message = 'B Rank!'
                 }
             end
-            if card.ability.extra.in_seconds_kinda <= card.ability.extra.C_rank then
+            if card.ability.extra.in_seconds_kinda <= card.ability.extra.C_rank[1] then
                 return {
-                    mult = 4,
+                    mult = card.ability.extra.C_rank[2],
                     message = 'C Rank!'
                 }
             end
-            if card.ability.extra.in_seconds_kinda <= card.ability.extra.D_rank then
+            if card.ability.extra.in_seconds_kinda <= card.ability.extra.D_rank[1] then
                 return {
-                    mult = 3,
+                    mult = card.ability.extra.D_rank[2],
                     message = 'D Rank!'
                 }
             end
-            if card.ability.extra.in_seconds_kinda <= card.ability.extra.E_rank then
+            if card.ability.extra.in_seconds_kinda <= card.ability.extra.E_rank[1] then
                 return {
-                    mult = 2,
+                    mult = card.ability.extra.E_rank[2],
                     message = 'E Rank!'
                 }
             end
-            if card.ability.extra.in_seconds_kinda <= card.ability.extra.F_rank then
+            if card.ability.extra.in_seconds_kinda <= card.ability.extra.F_rank[1] then
                 return {
-                    mult = 1,
+                    mult = card.ability.extra.F_rank[2],
                     message = 'F Rank!'
                 }
             end
             return {
-                chips = 1,
+                chips = card.ability.extra.AFK[2],
                 message = 'Someone went AFK, huh?'
             }
         end
     end,
 
-    update = function(self, card, dt)
-        local display_message = true
-        if not G.SETTINGS.paused and G.GAME.blind and G.GAME.blind.in_blind then
-            card.ability.extra.time_spent = card.ability.extra.time_spent + dt
-            card.ability.extra.in_seconds_kinda = math.floor(card.ability.extra.time_spent / 4.2)
-        end
-    end
+    add_to_deck = function(self, card, from_debuff)
+        card.ability.extra.starting_time = os.time{year=tonumber(os.date("%Y")), month=tonumber(os.date("%m")), day=tonumber(os.date("%d")), hour=tonumber(os.date("%H")), min=tonumber(os.date("%M")), sec=tonumber(os.date("%S"))}
+        print(card.ability.extra.starting_time)
+    end,
 }
 
 SMODS.Joker {
@@ -1807,6 +1805,8 @@ SMODS.Joker {
             'each played {C:attention}King{} to turn into a {C:attention}Queen{}',
             '{C:green}#1# in #2#{} chance for',
             'each played {C:attention}Queen{} to turn into a {C:attention}King{}',
+            'Gains {C:chips}+#3#{} Chips every transition',
+            '{C:inactive}(Currently {}{C:chips}+#4#{} {C:inactive}Chips){}',
         }
     },
     blueprint_compat = false,
@@ -1819,18 +1819,19 @@ SMODS.Joker {
     pos = { x = 7, y = 2 },
     pools = { ["Jambatro"] = true },
 
-    config = { extra = { odds = 3 } },
+    config = { extra = { odds = 3, chips = 0, chip_gain = 7 } },
 
     loc_vars = function(self, info_queue, card)
         local numerator, denominator = SMODS.get_probability_vars(card, 1, card.ability.extra.odds, "trannygener")
-        return { vars = { numerator, denominator } }
+        return { vars = { numerator, denominator, card.ability.extra.chip_gain, card.ability.extra.chips } }
     end,
 
     calculate = function(self, card, context)
         if context.cardarea == G.play and context.individual and context.other_card and not context.blueprint then
             local rank = context.other_card:get_id()
             if rank == 13 then
-                if SMODS.pseudorandom_probability(card, "trannygener", 1, card.ability.extra.odds) then
+                if SMODS.pseudorandom_probability(card, "trannygeender", 1, card.ability.extra.odds) then
+                    card.ability.extra.chips = card.ability.extra.chips + card.ability.extra.chip_gain
                     SMODS.change_base(context.other_card, nil, 'Queen') 
                     return {
                         message = 'Estrogen!'
@@ -1838,13 +1839,17 @@ SMODS.Joker {
                 end
             end
             if rank == 12 then
-                if SMODS.pseudorandom_probability(card, "trannygener", 1, card.ability.extra.odds) then
+                if SMODS.pseudorandom_probability(card, "trengander", 1, card.ability.extra.odds) then
+                    card.ability.extra.chips = card.ability.extra.chips + card.ability.extra.chip_gain
                     SMODS.change_base(context.other_card, nil, 'King') 
                     return {
                         message = 'Testosterone!'
                     }
                 end
             end
+        end
+        if context.joker_main then
+            return { chips =  card.ability.extra.chips }
         end
     end
 }
@@ -4569,12 +4574,16 @@ SMODS.Joker {
     end
 }
 
+SMODS.Sound({key = "steam", path = "steam_notification.mp3",})
+
 SMODS.Joker {
     key = 'jam_remaster',
     loc_txt = {
         name = 'Remastered Joker',
         text = {
-            '{C:red}+7{} Mult',
+            '{C:red}+#3#{} Mult',
+            '{C:green}#1# in #2#{} chance to download',
+            '{C:money}$#4#{} DLC of up to {C:red}+#5#{} Mult'
         }
     },
     blueprint_compat = true,
@@ -4587,11 +4596,28 @@ SMODS.Joker {
     pos = { x = 11, y = 4 },
     pools = { ["Jambatro"] = true },
 
+    config = { extra = { odds = 3, mult = 7, mult_max = 5, dollar = 3 } },
+
+    loc_vars = function(self, info_queue, card)
+        local numerator, denominator = SMODS.get_probability_vars(card, 1, card.ability.extra.odds, 'shittyremaster')
+        return { vars = { numerator, denominator, card.ability.extra.mult, card.ability.extra.dollar, card.ability.extra.mult_max } }
+    end,
+
     calculate = function(self, card, context)
         if context.joker_main then
             return {
-                mult = 7
+                mult = card.ability.extra.mult
             }
+        end
+        if context.end_of_round and context.game_over == false and context.main_eval and not context.blueprint then
+            if SMODS.pseudorandom_probability(card, 'shittyremaster', 1, card.ability.extra.odds) then
+                G.GAME.dollars = G.GAME.dollars - card.ability.extra.dollar
+                card.ability.extra.mult = card.ability.extra.mult + pseudorandom('dlc', 1, card.ability.extra.mult_max)
+                return {
+                    message = 'DLC Downloaded',
+                    sound = 'jammbo_steam'
+                }
+            end
         end
     end
 }
@@ -4776,7 +4802,7 @@ SMODS.Joker {
                 message = 'Upgrade!'
             }
         end
-        if context.joker_main and next(context.poker_hands[card.ability.extra.type]) then
+        if context.joker_main then
             return {
                 chips = card.ability.extra.chips
             }
@@ -4834,7 +4860,253 @@ SMODS.Joker {
     end
 }
 
+SMODS.Joker {
+    key = "jam_woke",
+    loc_txt = {
+        name = 'Woke Media',
+        text = {
+            '{C:mult}+#1#{} Mult for',
+            'every unique {C:attention}suit{}',
+            'in played hand'
+        }
+    },
+    blueprint_compat = true,
+    rarity = 1,
+    cost = 4,
+    discovered = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    atlas = 'Jammbo',
+    pos = { x = 10, y = 6 },
+    pools = { ["Jambatro"] = true },
 
+    config = { extra = { mult = 5, suits_played = {} } },
+
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.mult } }
+    end,
+
+    calculate = function(self, card, context)
+        if context.before and context.main_eval and not context.blueprint then
+            card.ability.extra.suits_played = {}
+            for _, played_card in ipairs(context.full_hand) do
+                local suit = played_card.base.suit
+                local match = false
+                for i = 1, #card.ability.extra.suits_played do
+                    if card.ability.extra.suits_played[i] == suit then
+                        match = true
+                    end
+                end
+                if match == false then
+                    card.ability.extra.suits_played[#card.ability.extra.suits_played + 1] = suit
+                end
+            end
+        end
+        if context.joker_main then
+            return {
+                mult = card.ability.extra.mult * #card.ability.extra.suits_played
+            }
+        end
+    end
+}
+
+SMODS.Joker {
+    key = "jam_super_sonic",
+    loc_txt = {
+        name = 'Super Sonic',
+        text = {
+            '{X:mult,C:white}X#2#{} Mult',
+            'Gains {X:mult,C:white}X#3#{} Mult every second',
+            'Resets after playing a hand'
+        }
+    },
+    blueprint_compat = true,
+    rarity = 4,
+    cost = 15,
+    discovered = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    atlas = 'Jammbo',
+    pos = { x = 10, y = 6 },
+
+    config = { extra = { second = 0, starting_time = 0, xmult = 1, xmult_gain = 0.2, do_reset = 1 } },
+
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.second, card.ability.extra.xmult, card.ability.extra.xmult_gain } }
+    end,
+
+    calculate = function(self, card, context)
+        if context.hand_drawn then
+            if card.ability.extra.do_reset == 1 then
+                card.ability.extra.starting_time = os.time{year=tonumber(os.date("%Y")), month=tonumber(os.date("%m")), day=tonumber(os.date("%d")), 
+                                                           hour=tonumber(os.date("%H")), min=tonumber(os.date("%M")), sec=tonumber(os.date("%S"))}
+                return { message = 'Building Energy...' }
+            else
+                
+            end
+        end
+        if context.discard then
+            card.ability.extra.do_reset = 0
+        end
+        if context.joker_main then
+            card.ability.extra.do_reset = 1
+            return {
+                xmult = card.ability.extra.xmult
+            }
+        end
+        if context.end_of_round and context.game_over == false and context.main_eval and not context.blueprint then
+            card.ability.extra.xmult = 1
+        end
+    end,
+
+    add_to_deck = function(self, card, from_debuff)
+        card.ability.extra.starting_time = os.time{year=tonumber(os.date("%Y")), month=tonumber(os.date("%m")), day=tonumber(os.date("%d")), hour=tonumber(os.date("%H")), min=tonumber(os.date("%M")), sec=tonumber(os.date("%S"))}
+        print(card.ability.extra.starting_time)
+    end,
+
+    update = function(self, card, dt)
+        if next(SMODS.find_card('j_jammbo_jam_super_sonic')) and G.STATE == 1 then
+            local t2 = os.time{year=tonumber(os.date("%Y")), month=tonumber(os.date("%m")), day=tonumber(os.date("%d")), 
+                               hour=tonumber(os.date("%H")), min=tonumber(os.date("%M")), sec=tonumber(os.date("%S"))}
+            local prev_s = card.ability.extra.second
+            card.ability.extra.second = os.difftime(t2, card.ability.extra.starting_time)
+            card.ability.extra.xmult = 1 + (card.ability.extra.second * card.ability.extra.xmult_gain)
+            if prev_s ~= card.ability.extra.second then
+                SMODS.calculate_effect({message = tostring(card.ability.extra.xmult)}, card)
+            end
+        end
+    end,
+}
+
+SMODS.Joker {
+    key = "jam_uno",
+    loc_txt = {
+        name = 'You Would Be Losing At UNO',
+        text = {
+            '{X:mult,C:white}X#1#{} Mult for every',
+            'card held in hand',
+            'First 2 cards in first played',
+            'hand are turned {C:attention}Negative{}',
+            '{C:attention}+#2#{} Hand Size',
+        }
+    },
+    blueprint_compat = true,
+    rarity = 4,
+    cost = 15,
+    discovered = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    atlas = 'Jammbo',
+    pos = { x = 5, y = 7 },
+    soul_pos = { x = 4, y = 7 },
+
+    config = { extra = { xmult = 0.4, h_size = 6, amount = 2 } },
+
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.xmult, card.ability.extra.h_size } }
+    end,
+
+    calculate = function (self, card, context)
+        if context.joker_main then
+            return {
+                xmult = #G.hand.cards * card.ability.extra.xmult
+            }
+        end
+        if context.first_hand_drawn and not context.blueprint then
+            local eval = function() return G.GAME.current_round.hands_played == 0 and not G.RESET_JIGGLES end
+            juice_card_until(card, eval, true)
+        end
+        if context.before and context.main_eval and not context.blueprint and G.GAME.current_round.hands_played == 0 then
+            local amount = 0
+            for _, scored_card in ipairs(context.scoring_hand) do
+                if amount < card.ability.extra.amount then
+                    scored_card:set_edition('e_negative', true)
+                end
+                amount = amount + 1
+            end
+        end
+    end,
+
+    add_to_deck = function(self, card, from_debuff)
+        G.hand:change_size(card.ability.extra.h_size)
+    end,
+
+    remove_from_deck = function(self, card, from_debuff)
+        G.hand:change_size(-card.ability.extra.h_size)
+    end
+}
+
+SMODS.Joker {
+    key = "jam_unique",
+    loc_txt = {
+        name = 'Everyone is Unique',
+        text = {
+            '{C:mult}+#1#{} Mult if hand',
+            'does not contain a {C:attention}Pair'
+        }
+    },
+    blueprint_compat = true,
+    rarity = 1,
+    cost = 4,
+    discovered = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    atlas = 'Jammbo',
+    pos = { x = 10, y = 6 },
+
+    config = { extra = { mult = 7, type = 'Pair' } },
+
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.mult } }
+    end, 
+
+    calculate = function (self, card, context)
+        if context.joker_main and not next(context.poker_hands[card.ability.extra.type]) then
+            return {
+                mult = card.ability.extra.mult
+            }
+        end
+    end
+}
+
+SMODS.Joker {
+    key = "jam_dvision",
+    loc_txt = {
+        name = 'Double Vision',
+        text = {
+            'Retrigger {C:attention}all{} played cards',
+            '{C:green}#1# in #2#{} chance to retrigger',
+            'each played card a {C:attention}second{} time'
+        }
+    },
+    blueprint_compat = true,
+    rarity = 4,
+    cost = 12,
+    discovered = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    atlas = 'Jammbo',
+    pos = { x = 10, y = 6 },
+
+    config = { extra = { odds = 3, retrigger = 1 } },
+
+    loc_vars = function(self, info_queue, card)
+        local numerator, denominator = SMODS.get_probability_vars(card, 1, card.ability.extra.odds, 'dxvk')
+        return { vars = { numerator, denominator } }
+    end,
+
+    calculate = function (self, card, context)
+        if context.repetition and context.cardarea == G.play and context.other_card then
+            card.ability.extra.retrigger = 1
+            if SMODS.pseudorandom_probability(card, 'dvxk', 1, card.ability.extra.odds) then
+                card.ability.extra.retrigger = 2
+            end
+            return {
+                repetitions = card.ability.extra.retrigger
+            }
+        end 
+    end
+}
 
 
 
@@ -5468,7 +5740,7 @@ SMODS.Blind {
 }
 
 SMODS.Blind {
-    key = "joe",
+    key = "druggy",
     loc_txt = {
         name = 'Performance Drugs',
         text = {
@@ -5485,7 +5757,7 @@ SMODS.Blind {
     boss_colour = HEX("b3633a"),
     calculate = function(self, blind, context)
         if not blind.disabled then
-            if context.debuff_card and (not context.debuff_card.seal and not context.debuff_card.edition and not next(SMODS.get_enhancements(context.debuff_card))) then
+            if context.debuff_card and (context.debuff_card.ability.set == 'Default' and not context.debuff_card.seal and not context.debuff_card.edition and not next(SMODS.get_enhancements(context.debuff_card))) then
                 return { debuff = true }
             else
                 return { debuff = false }
@@ -5493,7 +5765,40 @@ SMODS.Blind {
         end
     end,
     disable = function(self)
-        if context.debuff_card and (not context.debuff_card.seal and not context.debuff_card.edition and not next(SMODS.get_enhancements(context.debuff_card))) then
+        if context.debuff_card and (context.debuff_card.ability.set == 'Default' and not context.debuff_card.seal and not context.debuff_card.edition and not next(SMODS.get_enhancements(context.debuff_card))) then
+            return { debuff = false }
+        end
+    end,
+
+}
+
+SMODS.Blind {
+    key = "joe",
+    loc_txt = {
+        name = 'Average Joe',
+        text = {
+            'All cards and Jokers with',
+            'Editions are debuffed'
+        },
+    },
+    dollars = 5,
+    mult = 2,
+    atlas = 'jam_blinds',
+    pos = { x = 0, y = 2 },
+    discovered = true,
+    boss = { min = 5 },
+    boss_colour = HEX("cfccc1"),
+    calculate = function(self, blind, context)
+        if not blind.disabled then
+            if context.debuff_card and context.debuff_card.edition then
+                return { debuff = true }
+            else
+                return { debuff = false }
+            end
+        end
+    end,
+    disable = function(self)
+        if context.debuff_card and context.debuff_card.edition then
             return { debuff = false }
         end
     end,
