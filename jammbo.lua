@@ -1164,6 +1164,11 @@ SMODS.Joker {
     pos = { x = 3, y = 0 },
     pools = { ["Jambatro"] = true },
 
+    loc_vars = function(self, info_queue, card)
+        info_queue[#info_queue + 1] = G.P_CENTERS['m_mult']
+        return { vars = {  } }
+    end,
+
     calculate = function(self, card, context)
         if context.cardarea == G.play and context.individual and context.other_card then
             context.other_card.ability.perma_mult = (context.other_card.ability.perma_mult or 0) + 1
@@ -1323,6 +1328,10 @@ SMODS.Joker {
     },
 
     loc_vars = function(self, info_queue, card)
+        info_queue[#info_queue + 1] = G.P_CENTERS['j_ride_the_bus']
+        info_queue[#info_queue + 1] = G.P_CENTERS['j_campfire']
+        info_queue[#info_queue + 1] = G.P_CENTERS['j_hit_the_road']
+        info_queue[#info_queue + 1] = G.P_CENTERS['j_obelisk']
         return { 
             vars = { 
                 card.ability.extra.real_mult,
@@ -1777,6 +1786,12 @@ SMODS.Joker {
     pools = { ["Jambatro"] = true },
 
     config = { extra = { smashed = false } },
+
+    loc_vars = function(self, info_queue, card)
+        info_queue[#info_queue + 1] = G.P_CENTERS['m_glass']
+        info_queue[#info_queue + 1] = G.P_CENTERS['m_stone']
+        return { vars = {  } }
+    end,
 
     calculate = function(self, card, context)
         if context.hand_drawn then
@@ -2698,9 +2713,10 @@ SMODS.Joker {
     pos = { x = 9, y = 3 },
     pools = { ["Jambatro"] = true },
 
-    config = { extra = { xmult = 1.5, six = false, seven = false, xmult_gain = 0.2 } },
+    config = { extra = { xmult = 1.5, six = false, seven = false, xmult_gain = 0.2, mod_conv = 'm_jammbo_jam_mustard' } },
 
     loc_vars = function(self, info_queue, card)
+        info_queue[#info_queue + 1] = G.P_CENTERS[card.ability.extra.mod_conv]
         return { vars = { card.ability.extra.xmult, card.ability.extra.xmult_gain } }
     end,
     
@@ -2838,9 +2854,9 @@ SMODS.Joker {
     loc_txt = {
         name = "Freaky Joker",
         text = {
-            '{X:red,C:white}X#6#{} Mult for every unique {C:blue}Spectral{} card used',
-            '{C:red}+#2#{} Mult for every unique {C:planet}Planet{} card used',
-            '{C:chips}+#4#{} Chips for every unique {C:purple}Tarot{} card used',
+            'Gain {X:red,C:white}X#6#{} Mult when a {C:blue}Spectral{} card is used',
+            'Gain {C:red}+#2#{} Mult when a {C:planet}Planet{} card is used',
+            'Gain {C:chips}+#4#{} Chips when a {C:purple}Tarot{} card is used',
             '{C:inactive}(Currently {C:chips}+#3#{} {C:inactive}Chips and {}{C:red}+#1#{} {C:inactive}Mult and {}{X:red,C:white}X#5#{} {C:inactive}Mult){}'
         }
     },
@@ -2861,7 +2877,20 @@ SMODS.Joker {
     end,
 
     calculate = function(self, card, context)
-        if context.using_consumeable and not context.blueprint and context.consumeable.ability.set == ("Tarot" or "Spectral" or "Planet") then
+        if context.using_consumeable and not context.blueprint and context.consumeable.ability.set == ("Planet") then
+            card.ability.extra.mult = card.ability.extra.mult + card.ability.extra.mult_gain
+            return {
+                message = 'Power Up!'
+            }
+        end
+        if context.using_consumeable and not context.blueprint and context.consumeable.ability.set == ("Tarot") then
+            card.ability.extra.chips = card.ability.extra.chips + card.ability.extra.chips_gain
+            return {
+                message = 'Power Up!'
+            }
+        end
+        if context.using_consumeable and not context.blueprint and context.consumeable.ability.set == ("Spectral") then
+            card.ability.extra.xmult = card.ability.extra.xmult + card.ability.extra.xmult_gain
             return {
                 message = 'Power Up!'
             }
@@ -2874,19 +2903,6 @@ SMODS.Joker {
             }
         end
     end,
-    update = function(self, card, dt)
-        card.ability.extra.planets_used = 0
-        card.ability.extra.tarots_used = 0
-        card.ability.extra.spectrals_used = 0
-        for k, v in pairs(G.GAME.consumeable_usage) do
-            if v.set == 'Planet' then card.ability.extra.planets_used = card.ability.extra.planets_used + 1 end
-            if v.set == 'Tarot' then card.ability.extra.planets_used = card.ability.extra.tarots_used + 1 end
-            if v.set == 'Spectral' then card.ability.extra.planets_used = card.ability.extra.spectrals_used + 1 end
-        end
-        card.ability.extra.chips = card.ability.extra.tarots_used * card.ability.extra.chips_gain
-        card.ability.extra.mult = card.ability.extra.planets_used * card.ability.extra.mult_gain
-        card.ability.extra.xmult = (card.ability.extra.spectrals_used * card.ability.extra.xmult_gain) + 1
-    end
 }
 
 SMODS.Sound({key = "pan", path = "fryingpan.mp3",})
@@ -3454,6 +3470,7 @@ SMODS.Joker {
     config = { extra = { xchips = 0.2 } },
 
     loc_vars = function(self, info_queue, card)
+        info_queue[#info_queue + 1] = G.P_CENTERS['m_jammbo_jam_diamond']
         local diamond_tally = 0
         if G.playing_cards then
             for _, playing_card in ipairs(G.playing_cards) do
@@ -3511,8 +3528,8 @@ SMODS.Joker {
     end,
 
     calculate = function(self, card, context)
-        if context.pre_joker and G.GAME.current_round.discards_left == 0 then
-            if #context.full_hand == 5 and #context.scoring_hand == 1 then
+        if context.before and G.GAME.current_round.discards_left == 0 and not context.blueprint then
+            if #context.full_hand >= 5 and #context.scoring_hand == 1 then
                 card.ability.extra.chips = card.ability.extra.chips + card.ability.extra.chip_gain
                 SMODS.calculate_effect({message = "Upgrade!"}, card)
             end
@@ -3532,6 +3549,7 @@ SMODS.Joker {
         name = 'The King Will Come',
         text = {
             'Retrigger all {C:attention}Kings',
+            'when played or held in hand'
         }
     },
     blueprint_compat = true,
@@ -3566,6 +3584,7 @@ SMODS.Joker {
         name = 'Jacking It',
         text = {
             'Retrigger all {C:attention}Jacks',
+            'when played or held in hand'
         }
     },
     blueprint_compat = true,
@@ -4157,7 +4176,7 @@ SMODS.Joker{
     },
     blueprint_compat = true,
     rarity = 1,
-    cost = 6,
+    cost = 4,
     discovered = true,
     eternal_compat = true,
     perishable_compat = false,
@@ -4191,13 +4210,14 @@ SMODS.Joker{
     loc_txt = {
         name = 'Clock',
         text = {
-            '{C:chips}+#1##2#{} Chips',
-            'Chips depend on',
-            'the current {C:chips}time{}'
+            '{C:red}+#1#{} Mult',
+            '{C:chips}+#2#{} Chips',
+            'Mult and Chips depend on the',
+            'current {C:red}hour{} and {C:chips}minute{} of the day'
         }
     },
     blueprint_compat = true,
-    rarity = 3,
+    rarity = 2,
     cost = 6,
     discovered = true,
     eternal_compat = true,
@@ -4215,7 +4235,8 @@ SMODS.Joker{
     calculate = function(self, card, context)
         if context.joker_main then
             return {
-                chips = (card.ability.extra.hour * 100) + card.ability.extra.minute
+                mult = card.ability.extra.hour,
+                chips = card.ability.extra.minute
             }
         end
     end,
@@ -4337,6 +4358,7 @@ SMODS.Joker{
     config = { extra = { odds = 5, mult = 0, mult_part = 3 } },
 
     loc_vars = function(self, info_queue, card)
+        info_queue[#info_queue + 1] = G.P_CENTERS['m_jammbo_jam_enlightened']
         local numerator, denominator = SMODS.get_probability_vars(card, 1, card.ability.extra.odds, 'preacherjam')
         return { vars = { numerator, denominator, card.ability.extra.mult, card.ability.extra.mult_part } }
     end,
@@ -4390,7 +4412,7 @@ SMODS.Joker {
     },
     blueprint_compat = true,
     rarity = 3,
-    cost = 5,
+    cost = 7,
     discovered = true,
     eternal_compat = true,
     perishable_compat = false,
@@ -4514,6 +4536,7 @@ SMODS.Joker {
     config = { extra = { dollarinos = 0 } },
 
     loc_vars = function(self, info_queue, card)
+        info_queue[#info_queue + 1] = G.P_CENTERS['m_jammbo_jam_enlightened']
         return { vars = { card.ability.extra.dollarinos } }
     end,
 
@@ -4772,7 +4795,7 @@ SMODS.Joker {
 SMODS.Joker {
     key = "jam_underwear",
     loc_txt = {
-        name = 'Second Hand Undies',
+        name = 'Used Underwear',
         text = {
             'Gains {C:chips}+#1#{} Chips if',
             '{C:attention}second{} hand contains a {C:attention}pair',
@@ -4796,7 +4819,7 @@ SMODS.Joker {
     end,
 
     calculate = function(self, card, context)
-        if context.before and next(context.poker_hands[card.ability.extra.type]) and G.GAME.current_round.hands_left == (G.GAME.round_resets.hands - 2) then
+        if context.before and next(context.poker_hands[card.ability.extra.type]) and G.GAME.current_round.hands_left == (G.GAME.round_resets.hands - 2) and not context.blueprint then
             card.ability.extra.chips = card.ability.extra.chips + card.ability.extra.chips_gain
             return {
                 message = 'Upgrade!'
@@ -4827,57 +4850,7 @@ SMODS.Joker {
     eternal_compat = true,
     perishable_compat = true,
     atlas = 'Jammbo',
-    pos = { x = 10, y = 6 },
-    pools = { ["Jambatro"] = true },
-
-    config = { extra = { mult = 5, suits_played = {} } },
-
-    loc_vars = function(self, info_queue, card)
-        return { vars = { card.ability.extra.mult } }
-    end,
-
-    calculate = function(self, card, context)
-        if context.before and context.main_eval and not context.blueprint then
-            card.ability.extra.suits_played = {}
-            for _, played_card in ipairs(context.full_hand) do
-                local suit = played_card.base.suit
-                local match = false
-                for i = 1, #card.ability.extra.suits_played do
-                    if card.ability.extra.suits_played[i] == suit then
-                        match = true
-                    end
-                end
-                if match == false then
-                    card.ability.extra.suits_played[#card.ability.extra.suits_played + 1] = suit
-                end
-            end
-        end
-        if context.joker_main then
-            return {
-                mult = card.ability.extra.mult * #card.ability.extra.suits_played
-            }
-        end
-    end
-}
-
-SMODS.Joker {
-    key = "jam_woke",
-    loc_txt = {
-        name = 'Woke Media',
-        text = {
-            '{C:mult}+#1#{} Mult for',
-            'every unique {C:attention}suit{}',
-            'in played hand'
-        }
-    },
-    blueprint_compat = true,
-    rarity = 1,
-    cost = 4,
-    discovered = true,
-    eternal_compat = true,
-    perishable_compat = true,
-    atlas = 'Jammbo',
-    pos = { x = 10, y = 6 },
+    pos = { x = 6, y = 7 },
     pools = { ["Jambatro"] = true },
 
     config = { extra = { mult = 5, suits_played = {} } },
@@ -5052,7 +5025,7 @@ SMODS.Joker {
     eternal_compat = true,
     perishable_compat = true,
     atlas = 'Jammbo',
-    pos = { x = 10, y = 6 },
+    pos = { x = 7, y = 7 },
 
     config = { extra = { mult = 7, type = 'Pair' } },
 
@@ -5086,7 +5059,7 @@ SMODS.Joker {
     eternal_compat = true,
     perishable_compat = true,
     atlas = 'Jammbo',
-    pos = { x = 10, y = 6 },
+    pos = { x = 9, y = 7 },
 
     config = { extra = { odds = 3, retrigger = 1 } },
 
@@ -5098,13 +5071,348 @@ SMODS.Joker {
     calculate = function (self, card, context)
         if context.repetition and context.cardarea == G.play and context.other_card then
             card.ability.extra.retrigger = 1
-            if SMODS.pseudorandom_probability(card, 'dvxk', 1, card.ability.extra.odds) then
+            if SMODS.pseudorandom_probability(card, 'dxvk', 1, card.ability.extra.odds) then
                 card.ability.extra.retrigger = 2
             end
             return {
                 repetitions = card.ability.extra.retrigger
             }
         end 
+    end
+}
+
+SMODS.Joker {
+    key = 'jam_positive',
+    loc_txt = {
+        name = "Toxic Positivity",
+        text = {
+            'All played {C:attention}cards{}',
+            'give {X:mult,C:white}X#1#{} Mult and {C:blue}+#2#{} Chips',
+        }
+    },
+    blueprint_compat = true,
+    rarity = 4,
+    cost = 13,
+    discovered = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    atlas = 'Jammbo',
+    pos = { x = 10, y = 6 },
+    pools = { ["Jambatro"] = true },
+
+    config = { extra = { xmult = 1.5, chips = 50 } },
+
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.xmult, card.ability.extra.chips } }
+    end,
+
+    calculate = function(self, card, context)
+        if context.individual and context.cardarea == G.play then
+            return {
+                xmult = card.ability.extra.xmult,
+                chips = card.ability.extra.chips,
+            }
+        end
+    end
+}
+
+SMODS.Joker {
+    key = 'jam_jokers',
+    loc_txt = {
+        name = "Jokers4U",
+        text = {
+            'Creates a random {C:attention}Joker',
+            'when selecting a blind'
+        }
+    },
+    blueprint_compat = true,
+    rarity = 2,
+    cost = 6,
+    discovered = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    atlas = 'Jammbo',
+    pos = { x = 8, y = 7 },
+    pools = { ["Jambatro"] = true },
+
+    config = { extra = { creates = 1 } },
+
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.creates } }
+    end,
+    calculate = function(self, card, context)
+        if context.setting_blind and #G.jokers.cards + G.GAME.joker_buffer < G.jokers.config.card_limit then
+            local jokers_to_create = math.min(card.ability.extra.creates,
+                G.jokers.config.card_limit - (#G.jokers.cards + G.GAME.joker_buffer))
+            G.GAME.joker_buffer = G.GAME.joker_buffer + jokers_to_create
+            local rarities = {'Common', 'Common', 'Common', 'Uncommon', 'Uncommon', 'Uncommon', 'Rare'}
+            G.E_MANAGER:add_event(Event({
+                func = function()
+                    for _ = 1, jokers_to_create do
+                        SMODS.add_card {
+                            set = 'Joker',
+                            rarity = pseudorandom_element(rarities, 'rarities')
+                        }
+                        G.GAME.joker_buffer = 0
+                    end
+                    return true
+                end
+            }))
+            return {
+                message = 'Free Joker!',
+                colour = G.C.BLUE,
+            }
+        end
+    end,
+}
+
+SMODS.Joker {
+    key = 'jam_localshopforlocalpeople',
+    loc_txt = {
+        name = "Local Produce",
+        text = {
+            'Gains {C:mult}+#2#{} Mult when a {C:attention}Voucher{} is redeemed',
+            'Gains {C:chips}+#4#{} Chips when a {C:attention}Booster Pack{} is opened',
+            '{C:attention}Vouchers{} and {C:attention}Booster Packs{} cost {C:attention}#5#%{} more',
+            '{C:inactive}(Currently{} {C:chips}+#3#{} {C:inactive}Chips and{} {C:mult}+#1#{} {C:inactive}Mult)'
+        }
+    },
+    blueprint_compat = true,
+    rarity = 2,
+    cost = 6,
+    discovered = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    atlas = 'Jammbo',
+    pos = { x = 10, y = 6 },
+    pools = { ["Jambatro"] = true },
+
+    config = { extra = { mult = 0, mult_gain = 6, chips = 0, chip_gain = 15, percent = 50, vouchers_redeemed = {} } },
+
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.mult, card.ability.extra.mult_gain, card.ability.extra.chips, card.ability.extra.chip_gain, card.ability.extra.percent } }
+    end,
+
+    calculate = function (self, card, context)
+        if context.buying_card and context.card.ability.set == 'Voucher' and not context.blueprint then
+            card.ability.extra.mult = card.ability.extra.mult + card.ability.extra.mult_gain
+            return {
+                message = 'Upgrade!',
+                colour = G.C.RED,
+            }
+        end
+        if context.open_booster and not context.blueprint then
+            card.ability.extra.chips = card.ability.extra.chips + card.ability.extra.chip_gain
+            return {
+                message = 'Upgrade!',
+                colour = G.C.BLUE,
+            }
+        end
+        if context.joker_main then
+            card.ability.extra.vouchers_redeemed = {}
+            return {
+                chips = card.ability.extra.chips,
+                mult = card.ability.extra.mult
+            }
+        end
+        if context.starting_shop then
+            card.ability.extra.vouchers_redeemed = {}
+        end
+    end,
+
+    update = function(self, card, dt)
+        for _, v in pairs(G.I.CARD) do
+            if v.ability and v.ability.set and (v.ability.set == "Voucher" or v.ability.set == "Booster") then
+                local match = false
+                for i = 1, #card.ability.extra.vouchers_redeemed do
+                    if v.config.center.key == card.ability.extra.vouchers_redeemed[i] then
+                        match = true
+                    end
+                end
+                if match == false then
+                    card.ability.extra.vouchers_redeemed[#card.ability.extra.vouchers_redeemed + 1] = v.config.center.key
+                    v.cost = math.floor(v.cost + (v.cost/(100/card.ability.extra.percent)))
+                end
+            end
+        end
+    end,
+}
+
+SMODS.Joker {
+    key = 'jam_mealdeal',
+    loc_txt = {
+        name = "Meal Deal",
+        text = {
+            '{C:attention}#1#%{} discount on {C:attention}Vouchers{} and {C:attention}Booster Packs{}',
+            'Discount increases by {C:attention}#3#%{} when a',
+            '{C:attention}#2#{} is played, up to a maximum of {C:attention}#4#%{}',
+            '{C:inactive}(Hand type changes at the end of the round)'
+        }
+    },
+    blueprint_compat = false,
+    rarity = 2,
+    cost = 7,
+    discovered = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    atlas = 'Jammbo',
+    pos = { x = 10, y = 7 },
+    soul_pos = { x = 11, y = 7 },
+    pools = { ["Jambatro"] = true },
+
+    config = { extra = { percent = 5, vouchers_redeemed = {}, hand_type = 'Pair', first_update = false, percent_increase = 5, percent_max = 50 } },
+
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.percent, card.ability.extra.hand_type, card.ability.extra.percent_increase,card.ability.extra.percent_max } }
+    end,
+
+    calculate = function (self, card, context)
+        if context.joker_main then
+            card.ability.extra.vouchers_redeemed = {}
+        end
+        if context.starting_shop then
+            card.ability.extra.vouchers_redeemed = {}
+        end
+        if context.end_of_round and context.game_over == false and context.main_eval and not context.blueprint then
+            card.ability.extra.hand_type = pseudorandom_element(G.handlist, '4pounds50')
+        end
+        if context.before and not context.blueprint and context.scoring_name == card.ability.extra.hand_type then
+            if card.ability.extra.percent < 50 then
+                card.ability.extra.percent = card.ability.extra.percent + card.ability.extra.percent_increase
+                return {
+                    message = 'Upgrade!'
+                }
+            end
+            if card.ability.extra.percent >= 50 then
+                card.ability.extra.percent = 50
+            end
+        end
+    end,
+
+    update = function(self, card, dt)
+        for _, v in pairs(G.I.CARD) do
+            if v.ability and v.ability.set and (v.ability.set == "Voucher" or v.ability.set == "Booster") then
+                local match = false
+                for i = 1, #card.ability.extra.vouchers_redeemed do
+                    if v.config.center.key == card.ability.extra.vouchers_redeemed[i] then
+                        match = true
+                    end
+                end
+                if match == false then
+                    card.ability.extra.vouchers_redeemed[#card.ability.extra.vouchers_redeemed + 1] = v.config.center.key
+                    v.cost = math.floor(v.cost - (v.cost/(100/card.ability.extra.percent)))
+                end
+            end
+        end
+        if card.ability.extra.first_update == false then
+            card.ability.extra.first_update = true
+            card.ability.extra.hand_type = pseudorandom_element(G.handlist, '4pounds50')
+        end
+    end,
+}
+
+SMODS.Joker {
+    key = 'jam_seaside',
+    loc_txt = {
+        name = "Seaside Town",
+        text = {
+            'Gives {C:money}$#3#{} at the',
+            'end of the round',
+            '{C:green}#1# in #2#{} chance to make the',
+            'shop {C:red}completely unusable'
+        }
+    },
+    blueprint_compat = false,
+    rarity = 1,
+    cost = 3,
+    discovered = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    atlas = 'Jammbo',
+    pos = { x = 10, y = 6 },
+    pools = { ["Jambatro"] = true },
+
+    config = { extra = { odds = 2, dollars = 5, store_value = 0, skipping = false } },
+
+    loc_vars = function(self, info_queue, card)
+        local numerator, denominator = SMODS.get_probability_vars(card, 1, card.ability.extra.odds, 'cornwall')
+        return { vars = { numerator, denominator, card.ability.extra.dollars } }
+    end,
+    
+    calculate = function(self, card, context)
+        if context.starting_shop and not context.blueprint then
+            if SMODS.pseudorandom_probability(card, 'cornwall', 1, card.ability.extra.odds) then
+                card.ability.extra.store_value = G.GAME.dollars
+                G.GAME.dollars = -50
+                card.ability.extra.skipping = true
+                print(card.ability.extra.store_value)
+                return {
+                    message = 'No shops!'
+                }
+            end
+        end
+        if context.ending_shop and not context.blueprint then
+            if card.ability.extra.skipping == true then
+                G.GAME.dollars = card.ability.extra.store_value
+                return {
+                    message = 'Carrying on...'
+                }
+            end
+            card.ability.extra.skipping = false
+        end
+    end,
+
+    calc_dollar_bonus = function(self, card)
+        return card.ability.extra.dollars
+    end,
+}
+
+SMODS.Joker {
+    key = 'jam_imdb',
+    loc_txt = {
+        name = "IMDb",
+        text = {
+            'Turn all played {C:attention}9s{} and {C:attention}10s{} into {C:attention}7s{}',
+            'Played {C:attention}7s{} gain {C:chips}+#3#{} permanent Chips and',
+            'have a {C:green}#1# in #2#{} chance to be given a random rank'
+        }
+    },
+    blueprint_compat = false,
+    rarity = 2,
+    cost = 7,
+    discovered = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    atlas = 'Jammbo',
+    pos = { x = 10, y = 6 },
+    pools = { ["Jambatro"] = true },
+
+    config = { extra = { chip_gain = 7, odds = 3 } },
+
+    loc_vars = function(self, info_queue, card)
+        local numerator, denominator = SMODS.get_probability_vars(card, 1, card.ability.extra.odds, 'collective')
+        return { vars = { numerator, denominator, card.ability.extra.chip_gain } }
+    end,
+
+    calculate = function(self, card, context)
+        if context.cardarea == G.play and context.individual and context.other_card and not context.blueprint then
+            local rank = context.other_card:get_id()
+            if rank == 10 or rank == 9 then
+                SMODS.change_base(context.other_card, nil, '7')
+                return {
+                    message = 'Could be better'
+                }
+            end
+            if rank == 7 then
+                context.other_card.ability.perma_bonus = (context.other_card.ability.perma_bonus or 0) + 7
+                if SMODS.pseudorandom_probability(card, 'collective', 1, card.ability.extra.odds) then
+                    SMODS.change_base(context.other_card, nil, tostring(pseudorandom('ranks', 2, 14))) 
+                end
+                return {
+                    message = 'Upgrade!'
+                }
+            end
+        end
     end
 }
 
