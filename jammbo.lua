@@ -5058,7 +5058,6 @@ SMODS.Joker {
     perishable_compat = true,
     atlas = 'Jammbo',
     pos = { x = 10, y = 6 },
-    pools = { ["Jambatro"] = true },
 
     config = { extra = { xmult = 1.5, chips = 50 } },
 
@@ -5394,7 +5393,7 @@ SMODS.Joker {
     eternal_compat = true,
     perishable_compat = true,
     atlas = 'Jammbo',
-    pos = { x = 0, y = 7 },
+    pos = { x = 12, y = 0 },
     pools = { ["Jambatro"] = true },
 
     config = { extra = { mult_gain = 2, mult = 0, cards = 5, debuffing_hand = false } },
@@ -5448,7 +5447,7 @@ SMODS.Joker {
     eternal_compat = true,
     perishable_compat = true,
     atlas = 'Jammbo',
-    pos = { x = 11, y = 0 },
+    pos = { x = 0, y = 3 },
     pools = { ["Jambatro"] = true },
 
     config = { extra = { dollars = 1, gain = 2 } },
@@ -5488,7 +5487,7 @@ SMODS.Joker {
     eternal_compat = true,
     perishable_compat = true,
     atlas = 'Jammbo',
-    pos = { x = 11, y = 1 },
+    pos = { x = 12, y = 1 },
     pools = { ["Jambatro"] = true },
 
     config = { extra = { mult = 10, mult_gain = 2, chips = 20, chip_gain = 10, hands = 1 } },
@@ -5530,7 +5529,7 @@ SMODS.Joker {
     eternal_compat = true,
     perishable_compat = true,
     atlas = 'Jammbo',
-    pos = { x = 11, y = 2 },
+    pos = { x = 12, y = 2 },
     pools = { ["Jambatro"] = true },
 
     config = { extra = { mult = 10, mult_gain = 2, chips = 20, chip_gain = 10, hands = 1 } },
