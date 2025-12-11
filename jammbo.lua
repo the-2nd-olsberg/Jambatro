@@ -49,6 +49,13 @@ SMODS.Atlas {
 }
 
 SMODS.Atlas {
+    key = 'jam_tags',
+    path = 'tags.png',
+    px = 34,
+    py = 34
+}
+
+SMODS.Atlas {
     key = 'jam_blinds',
     path = 'blinds.png',
     px = 34,
@@ -60,6 +67,16 @@ SMODS.Atlas {
 SMODS.ObjectType({
 	key = "Jambatro",
 	default = "j_jam_greg",
+	cards = {},
+	inject = function(self)
+		SMODS.ObjectType.inject(self)
+	end,
+})
+
+--Pools
+SMODS.ObjectType({
+	key = "Jambatro_R",
+	default = "j_jam_waste",
 	cards = {},
 	inject = function(self)
 		SMODS.ObjectType.inject(self)
@@ -439,7 +456,7 @@ SMODS.Joker {
     perishable_compat = false,
     atlas = 'Jammbo',
     pos = { x = 6, y = 3 },
-    pools = { ["Jambatro"] = true },
+    pools = { ["Jambatro"] = true, ["Jambatro_R"] = true },
 
     config = { extra = { xmult = 1.02 } },
 
@@ -619,7 +636,7 @@ SMODS.Joker {
     perishable_compat = true,
     atlas = 'Jammbo',
     pos = { x = 1, y = 1 },
-    pools = { ["Jambatro"] = true },
+    pools = { ["Jambatro"] = true, ["Jambatro_R"] = true },
 
     config = { extra = { odds = 3, xmult = 2 } },
 
@@ -2353,7 +2370,7 @@ SMODS.Joker {
     perishable_compat = true,
     atlas = 'Jammbo',
     pos = { x = 7, y = 3 },
-    pools = { ["Jambatro"] = true },
+    pools = { ["Jambatro"] = true, ["Jambatro_R"] = true },
 
     config = { extra = { odds = 2 } },
 
@@ -2568,7 +2585,7 @@ SMODS.Joker {
     atlas = 'Jammbo',
     pos = { x = 5, y = 4 },
     soul_pos = { x = 1, y = 5 },
-    pools = { ["Jambatro"] = true },
+    pools = { ["Jambatro"] = true, ["Jambatro_R"] = true },
 
     config = { extra = { odds = 3 } },
 
@@ -2887,7 +2904,7 @@ SMODS.Joker {
     atlas = 'Jammbo',
     pos = { x = 9, y = 4 },
     soul_pos = { x = 0, y = 5 },
-    pools = { ["Jambatro"] = true },
+    pools = { ["Jambatro"] = true, ["Jambatro_R"] = true },
     
     config = { extra = { rounds = 6, gained = false, odds = 6 } },
 
@@ -3224,7 +3241,7 @@ SMODS.Joker {
     perishable_compat = true,
     atlas = 'Jammbo',
     pos = { x = 11, y = 0 },
-    pools = { ["Jambatro"] = true },
+    pools = { ["Jambatro"] = true, ["Jambatro_R"] = true },
 
     config = { extra = { win = false, uses = 2 } },
 
@@ -3663,7 +3680,7 @@ SMODS.Joker {
     perishable_compat = false,
     atlas = 'Jammbo',
     pos = { x = 7, y = 5 },
-    pools = { ["Jambatro"] = true },
+    pools = { ["Jambatro"] = true, ["Jambatro_R"] = true },
 
     config = { extra = { repetitions = 1, odds = 2 } },
 
@@ -4378,7 +4395,7 @@ SMODS.Joker {
     perishable_compat = false,
     atlas = 'Jammbo',
     pos = { x = 0, y = 6 },
-    pools = { ["Jambatro"] = true },
+    pools = { ["Jambatro"] = true, ["Jambatro_R"] = true },
 
     config = { extra = { h_size = 2, hands = 2, discards = 2 } },
 
@@ -5057,7 +5074,8 @@ SMODS.Joker {
     eternal_compat = true,
     perishable_compat = true,
     atlas = 'Jammbo',
-    pos = { x = 10, y = 6 },
+    pos = { x = 12, y = 6 },
+    soul_pos = { x = 12, y = 7 },
 
     config = { extra = { xmult = 1.5, chips = 50 } },
 
@@ -5143,7 +5161,7 @@ SMODS.Joker {
     eternal_compat = true,
     perishable_compat = true,
     atlas = 'Jammbo',
-    pos = { x = 10, y = 6 },
+    pos = { x = 12, y = 3 },
     pools = { ["Jambatro"] = true },
 
     config = { extra = { mult = 0, mult_gain = 6, chips = 0, chip_gain = 15, percent = 50, vouchers_redeemed = {} } },
@@ -5288,7 +5306,7 @@ SMODS.Joker {
     eternal_compat = true,
     perishable_compat = true,
     atlas = 'Jammbo',
-    pos = { x = 10, y = 6 },
+    pos = { x = 12, y = 4 },
     pools = { ["Jambatro"] = true },
 
     config = { extra = { odds = 2, dollars = 5, store_value = 0, skipping = false } },
@@ -5343,7 +5361,7 @@ SMODS.Joker {
     eternal_compat = true,
     perishable_compat = true,
     atlas = 'Jammbo',
-    pos = { x = 10, y = 6 },
+    pos = { x = 12, y = 5 },
     pools = { ["Jambatro"] = true },
 
     config = { extra = { chip_gain = 7, odds = 3 } },
@@ -5381,7 +5399,7 @@ SMODS.Joker {
         name = "Fake PNG",
         text = {
             'Must play at least {C:attention}#3#{} cards',
-            'Gains {C:mult}+#1#{} when played hand',
+            'Gains {C:mult}+#1#{} Mult when played hand',
             'contains less than {C:attention}#3#{} cards',
             '{C:inactive}(Currently{} {C:mult}+#2#{} {C:inactive}Mult)'
         }
@@ -5581,8 +5599,8 @@ SMODS.Joker {
     eternal_compat = true,
     perishable_compat = true,
     atlas = 'Jammbo',
-    pos = { x = 10, y = 6 },
-    pools = { ["Jambatro"] = true },
+    pos = { x = 0, y = 8 },
+    pools = { ["Jambatro"] = true, ["Jambatro_R"] = true },
 
     config = { extra = { odds = 3, used_discards = 1, cards = 1, copies = 2, copying = false, rank = 0 } },
 
@@ -5655,7 +5673,7 @@ SMODS.Joker {
     eternal_compat = true,
     perishable_compat = true,
     atlas = 'Jammbo',
-    pos = { x = 10, y = 6 },
+    pos = { x = 1, y = 8 },
     pools = { ["Jambatro"] = true },
 
     config = { extra = { mult = 10, mult_gain = 2, chips = 20, chip_gain = 10, hands = 1 } },
@@ -5698,7 +5716,7 @@ SMODS.Joker {
     perishable_compat = true,
     atlas = 'Jammbo',
     pos = { x = 10, y = 6 },
-    pools = { ["Jambatro"] = true },
+    pools = { ["Jambatro"] = true, ["Jambatro_R"] = true },
 
     config = { extra = { xmult = 3, xmult_gain = 0.2 } },
 
@@ -6395,6 +6413,44 @@ SMODS.Blind {
 }
 
 SMODS.Blind {
+    key = "zig",
+    loc_txt = {
+        name = 'The Zig-Zag',
+        text = {
+            'First hand: Mult reduced by 30%',
+            'Second hand: Chips reduced by 20%',
+            'and so on...'
+        },
+    },
+    dollars = 5,
+    mult = 2,
+    atlas = 'jam_blinds',
+    pos = { x = 0, y = 1 },
+    discovered = true,
+    boss = { min = 2 },
+    boss_colour = HEX("68a556"),
+    calculate = function(self, blind, context)
+        if not blind.disabled then
+            if context.final_scoring_step then
+                if G.GAME.current_round.hands_played % 2 == 1 then
+                    mult = (mult * 0.3)
+                    return {
+                        message = 'Zig!'
+                    }
+                end
+                if G.GAME.current_round.hands_played % 2 == 0 then
+                    hand_chips = (hand_chips * 0.2)
+                    return {
+                        message = 'Zag!'
+                    }
+                end
+            end
+        end
+    end,
+
+}
+
+SMODS.Blind {
     key = "joe",
     loc_txt = {
         name = 'Average Joe',
@@ -6424,7 +6480,6 @@ SMODS.Blind {
             return { debuff = false }
         end
     end,
-
 }
 
 
@@ -6650,7 +6705,8 @@ SMODS.Tag {
         },
     },
     min_ante = 2,
-    pos = { x = 4, y = 2 },
+    atlas = 'jam_tags',
+    pos = { x = 0, y = 0 },
     discovered = true,
     loc_vars = function(self, info_queue, tag)
         info_queue[#info_queue + 1] = G.P_CENTERS['p_jammbo_jam_booster_4']
@@ -6688,7 +6744,8 @@ SMODS.Tag {
         },
     },
     min_ante = 2,
-    pos = { x = 4, y = 2 },
+    atlas = 'jam_tags',
+    pos = { x = 2, y = 0 },
     discovered = true,
     loc_vars = function(self, info_queue, tag)
         info_queue[#info_queue + 1] = G.P_CENTERS['p_jammbo_jam_bugster_4']
@@ -6716,11 +6773,101 @@ SMODS.Tag {
     end
 }
 
+SMODS.Tag {
+    key = "jam_mega",
+    loc_txt = {
+        name = 'Super Mega Awesome Tag',
+        text = {
+            'Shop has a free',
+            '{C:red}Rare Jambatro{} Joker'
+        },
+    },
+    atlas = 'jam_tags',
+    pos = { x = 1, y = 0 },
+    discovered = true,
+    config = { odds = 3 },
+    apply = function(self, tag, context)
+        if context.type == 'store_joker_create' then
+            local rares_in_posession = { 0 }
+            for _, joker in ipairs(G.jokers.cards) do
+                if joker.config.center.rarity == 3 and not rares_in_posession[joker.config.center.key] then
+                    rares_in_posession[1] = rares_in_posession[1] + 1
+                    rares_in_posession[joker.config.center.key] = true
+                end
+            end
+            if #G.P_JOKER_RARITY_POOLS[3] > rares_in_posession[1] then
+                local card = SMODS.create_card {
+                    set = 'Jambatro_R',
+                    area = context.area,
+                    key_append = 'willies'
+                }
+                create_shop_card_ui(card, 'Joker', context.area)
+                card.states.visible = false
+                tag:yep('+', G.C.RED, function()
+                    card:start_materialize()
+                    card.ability.couponed = true
+                    card:set_cost()
+                    return true
+                end)
+                tag.triggered = true
+                return card
+            else
+                tag:nope()
+            end
+        end
+    end
+}
+
+SMODS.Tag {
+    key = "jam_jam",
+    loc_txt = {
+        name = 'Jammbo Tag',
+        text = {
+            'Shop has a free',
+            '{C:red}Jambatro{} Joker'
+        },
+    },
+    atlas = 'jam_tags',
+    pos = { x = 0, y = 1 },
+    discovered = true,
+    config = { odds = 3 },
+    apply = function(self, tag, context)
+        if context.type == 'store_joker_create' then
+            local rares_in_posession = { 0 }
+            for _, joker in ipairs(G.jokers.cards) do
+                if joker.config.center.rarity == 3 and not rares_in_posession[joker.config.center.key] then
+                    rares_in_posession[1] = rares_in_posession[1] + 1
+                    rares_in_posession[joker.config.center.key] = true
+                end
+            end
+            if #G.P_JOKER_RARITY_POOLS[3] > rares_in_posession[1] then
+                local card = SMODS.create_card {
+                    set = 'Jambatro',
+                    area = context.area,
+                    key_append = 'willies'
+                }
+                create_shop_card_ui(card, 'Joker', context.area)
+                card.states.visible = false
+                tag:yep('+', G.C.RED, function()
+                    card:start_materialize()
+                    card.ability.couponed = true
+                    card:set_cost()
+                    return true
+                end)
+                tag.triggered = true
+                return card
+            else
+                tag:nope()
+            end
+        end
+    end
+}
+
+
 
 
 
 
 --Mod Stuff
 SMODS.current_mod.calculate = function(self, context)
-
 end
