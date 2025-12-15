@@ -63,6 +63,13 @@ SMODS.Atlas {
     atlas_table = 'ANIMATION_ATLAS', frames = 1
 }
 
+SMODS.Atlas {
+    key = 'Seals',
+    path = 'seals.png',
+    px = 71,
+    py = 95
+}
+
 --Pools
 SMODS.ObjectType({
 	key = "Jambatro",
@@ -197,6 +204,47 @@ SMODS.Enhancement {
         end
     end,
 }
+
+SMODS.Enhancement {
+     key = 'jam_battery',
+    loc_txt = {
+        name = "Battery Card",
+        text = {
+            '{C:mult}+#1#{} Mult',
+            'Gains {C:mult}+#2#{} Mult',
+            'when discarded',
+            'Loses {C:mult}+#3#{} Mult',
+            'after scoring'
+        }
+    },
+    atlas = 'jam_enhancements',
+    pos = { x = 3, y = 0 },
+    config = { extra = { mult = 0, mult_gain = 2, mult_loss = 3 } },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.mult, card.ability.extra.mult_gain, card.ability.extra.mult_loss } }
+    end,
+
+    calculate = function(self, card, context)
+        if context.main_scoring and context.cardarea == G.play then
+            return {
+                mult = card.ability.extra.mult
+            }
+        end
+        if context.discard and context.other_card == card then
+            card.ability.extra.mult = card.ability.extra.mult + card.ability.extra.mult_gain
+            return {
+                message = 'Charging!'
+            }
+        end
+        if context.after and context.cardarea == G.play then
+            card.ability.extra.mult = card.ability.extra.mult - card.ability.extra.mult_loss
+            return {
+                message = 'Losing Charge!'
+            }
+        end
+    end,
+}
+
 
 
 -- Jokers
@@ -5715,10 +5763,10 @@ SMODS.Joker {
     eternal_compat = true,
     perishable_compat = true,
     atlas = 'Jammbo',
-    pos = { x = 10, y = 6 },
+    pos = { x = 3, y = 8 },
     pools = { ["Jambatro"] = true, ["Jambatro_R"] = true },
 
-    config = { extra = { xmult = 3, xmult_gain = 0.2 } },
+    config = { extra = { xmult = 5, xmult_gain = 0.15 } },
 
     loc_vars = function(self, info_queue, card)
         return { vars = { card.ability.extra.xmult, card.ability.extra.xmult_gain } }
@@ -5743,6 +5791,178 @@ SMODS.Joker {
             return {
                 xmult = card.ability.extra.xmult
             }
+        end
+    end
+}
+
+SMODS.Joker {
+    key = 'jam_cube',
+    loc_txt = {
+        name = "The Cube",
+        text = {
+            'All played cards with a {C:attention}square',
+            'rank give the {C:attention}cube{} of their',
+            '{C:attention}square root{} as Mult',
+            '{C:inactive}(Ex:{} {C:attention}4s{} {C:inactive}give{} {C:mult}+8{} {C:inactive}Mult)'
+        }
+    },
+    blueprint_compat = true,
+    rarity = 2,
+    cost = 6,
+    discovered = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    atlas = 'Jammbo',
+    pos = { x = 2, y = 8 },
+    pools = { ["Jambatro"] = true },
+
+    calculate = function(self, card, context)
+        if context.individual and context.cardarea == G.play and context.other_card then
+            local simplifier = math.sqrt(context.other_card:get_id())
+            if context.other_card:get_id() == 14 then
+                simplifier = 1
+            end
+            local is_square = (simplifier) % 1
+            if is_square == 0 then
+                return {
+                    mult = (simplifier * simplifier * simplifier)
+                }
+            end
+        end
+    end
+}
+
+SMODS.Joker {
+    key = 'jam_braindead',
+    loc_txt = {
+        name = "Braindead",
+        text = {
+            '{C:chips}+#2#{} Chips {C:mult}+#1#{} Mult',
+            'for every card in',
+            '{C:attention}full{} played hand'
+        }
+    },
+    blueprint_compat = true,
+    rarity = 3,
+    cost = 8,
+    discovered = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    atlas = 'Jammbo',
+    pos = { x = 5, y = 8 },
+    pools = { ["Jambatro"] = true, ["Jambatro_R"] = true },
+
+    config = { extra = { mult = 6, chips = 10 } },
+
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.mult, card.ability.extra.chips } }
+    end,
+
+    calculate = function(self, card, context)
+        if context.joker_main then
+            return {
+                chips = card.ability.extra.chips * #context.full_hand,
+                mult = card.ability.extra.mult * #context.full_hand
+            }
+        end
+    end
+}
+
+SMODS.Joker {
+    key = 'jam_random',
+    loc_txt = {
+        name = "r/iamveryrandom",
+        text = {
+            '{C:green}#1# in #2#{} chance to give a random {C:purple}Tarot{} card when selecting a blind',
+            '{C:green}#3# in #4#{} chance to give between {C:red}+#9#{} and {C:red}+#10#{} Mult',
+            '{C:green}#5# in #6#{} chance to give between {C:chips}+#11#{} and {C:chips}+#12#{} Chips',
+            '{C:green}#7# in #8#{} chance to give a random {C:planet}Planet{} card at the end of the round'
+        }
+    },
+    blueprint_compat = true,
+    rarity = 1,
+    cost = 6,
+    discovered = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    atlas = 'Jammbo',
+    pos = { x = 4, y = 8 },
+    pools = { ["Jambatro"] = true },
+
+    config = { extra = { odds = 3, odds1 = 2, odds2 = 4, odds3 = 5, mult_min = 5, mult_max = 15, chips_min = 10, chips_max = 50 } },
+
+    loc_vars = function(self, info_queue, card)
+        local numerator, denominator   = SMODS.get_probability_vars(card, 1, card.ability.extra.odds,  'random_tarot')
+        local numerator1, denominator1 = SMODS.get_probability_vars(card, 1, card.ability.extra.odds1, 'random_mult')
+        local numerator2, denominator2 = SMODS.get_probability_vars(card, 1, card.ability.extra.odds2, 'random_chips')
+        local numerator3, denominator3 = SMODS.get_probability_vars(card, 1, card.ability.extra.odds3, 'random_planet')
+        return { vars = { numerator, denominator, 
+                          numerator1, denominator1, 
+                          numerator2, denominator2, 
+                          numerator3, denominator3,
+                          card.ability.extra.mult_min, card.ability.extra.mult_max,
+                          card.ability.extra.chips_min, card.ability.extra.chips_max,
+                        } }
+    end,
+
+    calculate = function(self, card, context)
+        if context.setting_blind and #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit
+        and SMODS.pseudorandom_probability(card, 'random_tarot', 1, card.ability.extra.odds) then
+            G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
+            G.E_MANAGER:add_event(Event({
+                func = (function()
+                    G.E_MANAGER:add_event(Event({
+                        func = function()
+                            SMODS.add_card {
+                                set = 'Tarot',
+                                key_append = 'quirky'
+                            }
+                            G.GAME.consumeable_buffer = 0
+                            return true
+                        end
+                    }))
+                    SMODS.calculate_effect({ message = localize('k_plus_tarot'), colour = G.C.PURPLE },
+                        context.blueprint_card or card)
+                    return true
+                end)
+            }))
+            return nil, true
+        end
+        if context.joker_main then
+            local mult_r = 0
+            local chips_r = 0
+            if SMODS.pseudorandom_probability(card, 'random_mult', 1, card.ability.extra.odds1) then
+                mult_r = pseudorandom('mult', card.ability.extra.mult_min,  card.ability.extra.mult_max)
+            end
+            if SMODS.pseudorandom_probability(card, 'random_chips', 1, card.ability.extra.odds2) then
+                chips_r = pseudorandom('chips', card.ability.extra.chips_min,  card.ability.extra.chips_max)
+            end
+            return {
+                mult = mult_r,
+                chips = chips_r
+            }
+        end
+        if context.end_of_round and context.game_over == false and context.main_eval and #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit and 
+        SMODS.pseudorandom_probability(card, 'random_planet', 1, card.ability.extra.odds3) then
+            G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
+            G.E_MANAGER:add_event(Event({
+                func = (function()
+                    G.E_MANAGER:add_event(Event({
+                        func = function()
+                            SMODS.add_card {
+                                set = 'Planet',
+                                key_append = 'quirky'
+                            }
+                            G.GAME.consumeable_buffer = 0
+                            return true
+                        end
+                    }))
+                    SMODS.calculate_effect( { message = localize('k_plus_planet'), colour = G.C.SECONDARY_SET.Planet },
+                        context.blueprint_card or card)
+                    return true
+                end)
+            }))
+            return nil, true
         end
     end
 }
@@ -5907,9 +6127,9 @@ SMODS.Consumable {
         name = 'Ant',
         text = {
             'Select {C:attention}#1#{} cards',
-            'Gives the card on the {C:attention}left{}',
+            'Gives the card on the {C:attention}right{}',
             '{C:attention}half{} of the chips from the the {C:attention}2',
-            'cards on the {C:attention}right',
+            'cards on the {C:attention}left',
             '{C:inactive}(Credits to @codifyd for idea)'
         }
     },
@@ -6052,6 +6272,125 @@ SMODS.Consumable {
 }
 
 SMODS.Consumable {
+    key = 'jam_genetics',
+    loc_txt = {
+        name = 'Genetic Modification',
+        text = {
+            'Select {C:attention}#1#{} cards',
+            'Gives the card on the {C:attention}right{} all',
+            '{C:attention}enhnacements, editions, and seals{}',
+            'from the {C:attention}2{} cards on the {C:attention}left',
+            '{C:inactive}(Rightmost cards have higher priority)'
+        }
+    },
+    set = 'Spectral',
+    atlas = 'jam_spectral',
+    pos = { x = 1, y = 0 },
+    discovered = true,
+    config = { max_highlighted = 3, min_highlighted = 3 },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.max_highlighted } }
+    end,
+    use = function(self, card, area, copier)
+        G.E_MANAGER:add_event(Event({
+            trigger = 'after',
+            delay = 0.4,
+            func = function()
+                play_sound('tarot1')
+                card:juice_up(0.3, 0.5)
+                return true
+            end
+        }))
+
+        local rightmost = G.hand.highlighted[1]
+        for i = 1, #G.hand.highlighted do
+            if G.hand.highlighted[i].T.x > rightmost.T.x then
+                rightmost = G.hand.highlighted[i]
+            end
+        end
+
+        local leftmost = G.hand.highlighted[#G.hand.highlighted]
+        for i = 1, #G.hand.highlighted do
+            if G.hand.highlighted[i].T.x < leftmost.T.x then
+                leftmost = G.hand.highlighted[i]
+            end
+        end
+
+        local middle = G.hand.highlighted[1]
+        for i = 1, #G.hand.highlighted do
+            if G.hand.highlighted[i] ~= rightmost and G.hand.highlighted[i] ~= leftmost then
+                middle = G.hand.highlighted[i]
+            end
+        end
+
+        for i = 1, #G.hand.highlighted do
+            local percent = 1.15 - (i - 0.999) / (#G.hand.highlighted - 0.998) * 0.3
+            G.E_MANAGER:add_event(Event({
+                trigger = 'after',
+                delay = 0.15,
+                func = function()
+                    G.hand.highlighted[i]:flip()
+                    play_sound('card1', percent)
+                    G.hand.highlighted[i]:juice_up(0.3, 0.3)
+                    return true
+                end
+            }))
+        end
+
+        local test = { leftmost, middle }
+
+         G.E_MANAGER:add_event(Event({
+            trigger = 'after',
+            delay = 0.15,
+            func = function()
+                for i = 1, #test do
+                    if test[i].config.center.key ~= 'c_base' then
+                        rightmost:set_ability(test[i].config.center.key, nil, true)
+                        test[i]:set_ability ('c_base', nil, true)
+                    end
+                    if test[i].seal then
+                        rightmost:set_seal(test[i].seal, nil, true)
+                        test[i]:set_seal(nil, true, true)
+                    end
+                    if test[i].edition then
+                        rightmost:set_edition(test[i].edition, nil, true)
+                        test[i]:set_edition(nil, true, true)
+                    end
+                end
+                return true
+            end
+        }))
+
+        SMODS.calculate_effect({message = "Transfer!"}, card)
+
+        for i = 1, #G.hand.highlighted do
+            local percent = 1.15 - (i - 0.999) / (#G.hand.highlighted - 0.998) * 0.3
+            G.E_MANAGER:add_event(Event({
+                trigger = 'after',
+                delay = 0.1,
+                func = function()
+                    G.hand.highlighted[i]:flip()
+                    play_sound('card1', percent)
+                    G.hand.highlighted[i]:juice_up(0.3, 0.3)
+                    return true
+                end
+            }))
+        end
+
+        G.E_MANAGER:add_event(Event({
+            trigger = 'after',
+            delay = 0.2,
+            func = function()
+                G.hand:unhighlight_all()
+                return true
+            end
+        }))
+        delay(0.5)
+    end
+}
+
+
+SMODS.Consumable {
     key = 'jam_beetle',
     loc_txt = {
         name = 'Beetle',
@@ -6113,7 +6452,9 @@ SMODS.Consumable {
     use = function(self, card, area, copier)
         local cen_pool = {}
         for _, enhancement_center in pairs(G.P_CENTER_POOLS["Enhanced"]) do
-            cen_pool[#cen_pool + 1] = enhancement_center
+            if enhancement_center.key ~= 'm_stone' and not enhancement_center.overrides_base_rank then
+                cen_pool[#cen_pool + 1] = enhancement_center
+            end
         end
         G.E_MANAGER:add_event(Event({
             trigger = 'after',
@@ -6287,6 +6628,142 @@ SMODS.Consumable {
 }
 
 SMODS.Consumable {
+    key = 'jam_cool',
+    loc_txt = {
+        name = 'Cool Guy',
+        text = {
+            "Gives #1# card a",
+            '{C:attention}Cool Seal'
+        }
+    },
+    set = 'Spectral',
+    atlas = 'jam_spectral',
+    pos = { x = 2, y = 0 },
+    discovered = true,
+    config = { max_highlighted = 1 },
+    loc_vars = function(self, info_queue, card)
+        info_queue[#info_queue + 1] = { key = 'jammbo_jam_cool', set = 'Seal' }
+        return { vars = { card.ability.max_highlighted } }
+    end,
+    use = function(self, card, area, copier)
+
+        for i = 1, #G.hand.highlighted do
+            G.E_MANAGER:add_event(Event({
+                trigger = 'after',
+                delay = 0.1,
+                func = function()
+                    G.hand.highlighted[i]:set_seal('jammbo_jam_cool', nil, true)
+                    return true
+                end
+            }))
+        end
+        G.E_MANAGER:add_event(Event({
+            trigger = 'after',
+            delay = 0.2,
+            func = function()
+                G.hand:unhighlight_all()
+                return true
+            end
+        }))
+        delay(0.5)
+    end
+}
+
+SMODS.Consumable {
+    key = 'jam_fool',
+    loc_txt = {
+        name = 'Fool Guy',
+        text = {
+            'Destroy {C:attention}1{} random cards,',
+            '{C:attention}3{} random {C:attention}sealed{} cards',
+            'added to your hand'
+        }
+    },
+    set = 'Spectral',
+    atlas = 'jam_spectral',
+    pos = { x = 3, y = 0 },
+    discovered = true,
+    config = { extra = { destroy = 1, cards = 3 } },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.max_highlighted } }
+    end,
+    use = function(self, card, area, copier)
+        local used_tarot = copier or card
+        local card_to_destroy = pseudorandom_element(G.hand.cards, 'random_destroy')
+        G.E_MANAGER:add_event(Event({
+            trigger = 'after',
+            func = function()
+                play_sound('tarot1')
+                used_tarot:juice_up(0.3, 0.5)
+                return true
+            end
+        }))
+        SMODS.destroy_cards(card_to_destroy)
+
+        local ranks = { 'Ace', 'King', 'Queen', 'Jack', '10', '9', '8', '7', '6', '5', '4', '3', '2' }
+
+        G.E_MANAGER:add_event(Event({
+            trigger = 'after',
+            delay = 0.7,
+            func = function()
+                local cards = {}
+                for i = 1, card.ability.extra.cards do
+                    cards[i] = SMODS.add_card { set = "Base", seal = SMODS.poll_seal({key = 'supercharge', guaranteed = true}), rank = pseudorandom_element(ranks, 'le_ranky') }
+                end
+                SMODS.calculate_context({ playing_card_added = true, cards = cards })
+                return true
+            end
+        }))
+        delay(0.3)
+    end,
+    can_use = function(self, card)
+        return G.hand and #G.hand.cards > 1
+    end,
+}
+
+SMODS.Consumable {
+    key = 'jam_spider2',
+    loc_txt = {
+        name = 'Magic Spider',
+        text = {
+            "Gives #1# card a",
+            '{C:attention}Web Seal'
+        }
+    },
+    set = 'Spectral',
+    atlas = 'jam_spectral',
+    pos = { x = 4, y = 0 },
+    discovered = true,
+    config = { max_highlighted = 1 },
+    loc_vars = function(self, info_queue, card)
+        info_queue[#info_queue + 1] = { key = 'jammbo_jam_web', set = 'Seal' }
+        return { vars = { card.ability.max_highlighted } }
+    end,
+    use = function(self, card, area, copier)
+
+        for i = 1, #G.hand.highlighted do
+            G.E_MANAGER:add_event(Event({
+                trigger = 'after',
+                delay = 0.1,
+                func = function()
+                    G.hand.highlighted[i]:set_seal('jammbo_jam_web', nil, true)
+                    return true
+                end
+            }))
+        end
+        G.E_MANAGER:add_event(Event({
+            trigger = 'after',
+            delay = 0.2,
+            func = function()
+                G.hand:unhighlight_all()
+                return true
+            end
+        }))
+        delay(0.5)
+    end
+}
+
+SMODS.Consumable {
     key = 'jam_spider',
     loc_txt = {
         name = 'Spider',
@@ -6417,8 +6894,8 @@ SMODS.Blind {
     loc_txt = {
         name = 'The Zig-Zag',
         text = {
-            'First hand: Mult reduced by 30%',
-            'Second hand: Chips reduced by 20%',
+            'First hand: Mult reduced by 25%',
+            'Second hand: Chips reduced by 15%',
             'and so on...'
         },
     },
@@ -6433,13 +6910,13 @@ SMODS.Blind {
         if not blind.disabled then
             if context.final_scoring_step then
                 if G.GAME.current_round.hands_played % 2 == 1 then
-                    mult = (mult * 0.3)
+                    mult = (mult * 0.25)
                     return {
                         message = 'Zig!'
                     }
                 end
                 if G.GAME.current_round.hands_played % 2 == 0 then
-                    hand_chips = (hand_chips * 0.2)
+                    hand_chips = (hand_chips * 0.15)
                     return {
                         message = 'Zag!'
                     }
@@ -6864,7 +7341,72 @@ SMODS.Tag {
 }
 
 
+--Seals
+SMODS.Seal {
+    key = "jam_cool",
+    loc_txt = {
+        name = 'Cool Seal',
+        text = {
+            'Creates a {C:attention}Super Mega',
+            '{C:attention}Awesome Tag{} when held in hand',
+            'at the end of the round',
+            'Card {C:attention}destoryed{} after use'
+        },
+    },
+    atlas = 'Seals',
+    pos = { x = 0, y = 0 },
+    discovered = true,
+    badge_colour = G.C.RED,
+     loc_vars = function(self, info_queue, card)
+        info_queue[#info_queue + 1] = { key = 'tag_jammbo_jam_mega', set = 'Tag' }
+        return { vars = {  } }
+    end,
+    calculate = function(self, card, context)
+        if context.end_of_round and context.cardarea == G.hand and context.other_card == card then
+            G.E_MANAGER:add_event(Event({
+                func = (function()
+                    add_tag(Tag('tag_jammbo_jam_mega'))
+                    play_sound('generic1', 0.9 + math.random() * 0.1, 0.8)
+                    play_sound('holo1', 1.2 + math.random() * 0.1, 0.4)
+                    return true
+                end)
+            }))
+            SMODS.calculate_effect({message = "Avenge me!"}, card)
+            card:remove()
+            return nil, true
+        end
+    end
+}
 
+SMODS.Seal {
+    key = "jam_web",
+    loc_txt = {
+        name = 'Web Seal',
+        text = {
+            'Creates a {C:attention}Bug Card',
+            'when {C:attention}discarded'
+        },
+    },
+    atlas = 'Seals',
+    pos = { x = 1, y = 0 },
+    discovered = true,
+    badge_colour = G.C.PURPLE,
+    calculate = function(self, card, context)
+        if context.discard and context.other_card == card and #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit then
+            G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
+            G.E_MANAGER:add_event(Event({
+                trigger = 'before',
+                delay = 0.0,
+                func = function()
+                    SMODS.add_card({ set = 'jam_buggies', area = G.consumeables })
+                    G.GAME.consumeable_buffer = 0
+                    return true
+                end
+            }))
+            return { message = 'BUG!', colour = G.C.PURPLE }
+        end
+    end
+}
 
 
 
