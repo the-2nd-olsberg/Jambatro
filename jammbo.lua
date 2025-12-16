@@ -219,7 +219,7 @@ SMODS.Enhancement {
     },
     atlas = 'jam_enhancements',
     pos = { x = 3, y = 0 },
-    config = { extra = { mult = 0, mult_gain = 2, mult_loss = 3 } },
+    config = { extra = { mult = 0, mult_gain = 5, mult_loss = 3 } },
     loc_vars = function(self, info_queue, card)
         return { vars = { card.ability.extra.mult, card.ability.extra.mult_gain, card.ability.extra.mult_loss } }
     end,
@@ -4925,7 +4925,8 @@ SMODS.Joker {
     eternal_compat = true,
     perishable_compat = true,
     atlas = 'Jammbo',
-    pos = { x = 10, y = 6 },
+    pos = { x = 7, y = 8 },
+    soul_pos = { x = 6, y = 8 },
 
     config = { extra = { second = 0, starting_time = 0, xmult = 1, xmult_gain = 0.2, do_reset = 1 } },
 
@@ -6013,6 +6014,27 @@ SMODS.Consumable {
 }
 
 SMODS.Consumable {
+    key = 'jam_outlet',
+    loc_txt = {
+        name = 'Outlet',
+        text = {
+            "Enhances {C:attention}#1#{} selected",
+            "card into a",
+            "{C:attention}Battery Card",
+        }
+    },
+    set = 'Tarot',
+    atlas = 'jam_tarot',
+    pos = { x = 6, y = 0 },
+    discovered = true,
+    config = { max_highlighted = 1, mod_conv = 'm_jammbo_jam_battery' },
+    loc_vars = function(self, info_queue, card)
+        info_queue[#info_queue + 1] = G.P_CENTERS[card.ability.mod_conv]
+        return { vars = { card.ability.max_highlighted } }
+    end,
+}
+
+SMODS.Consumable {
     key = 'jam_misplace',
     loc_txt = {
         name = 'Misplaced Joker',
@@ -6894,8 +6916,8 @@ SMODS.Blind {
     loc_txt = {
         name = 'The Zig-Zag',
         text = {
-            'First hand: Mult reduced by 25%',
-            'Second hand: Chips reduced by 15%',
+            'First hand: Mult reduced by 20%',
+            'Second hand: Chips reduced by 20%',
             'and so on...'
         },
     },
@@ -6910,13 +6932,13 @@ SMODS.Blind {
         if not blind.disabled then
             if context.final_scoring_step then
                 if G.GAME.current_round.hands_played % 2 == 1 then
-                    mult = (mult * 0.25)
+                    mult = (mult * 0.8)
                     return {
                         message = 'Zig!'
                     }
                 end
                 if G.GAME.current_round.hands_played % 2 == 0 then
-                    hand_chips = (hand_chips * 0.15)
+                    hand_chips = (hand_chips * 0.8)
                     return {
                         message = 'Zag!'
                     }
