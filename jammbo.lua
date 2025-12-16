@@ -4380,7 +4380,7 @@ SMODS.Joker{
     pos = { x = 11, y = 3 },
     pools = { ["Jambatro"] = true },
 
-    config = { extra = { odds = 5, mult = 0, mult_part = 3 } },
+    config = { extra = { odds = 5, mult = 0, mult_part = 1 } },
 
     loc_vars = function(self, info_queue, card)
         info_queue[#info_queue + 1] = G.P_CENTERS['m_jammbo_jam_enlightened']
