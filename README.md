@@ -3,7 +3,7 @@ Welcome to the Jambatro Balatro mod!
 Easy installation same as any other mod: Download the latest release (or clone the repo if you want some potentially unfinished stuff), and unzip it in your mods folder! Easy as that! Also available in the Balatro Mod Manager!
 
 Additions (as of release 1.4):
-- 100 Jokers (some missing art)
+- 100 Jokers
 - 4 Card Enhancements
 - 7 Tarot Cards
 - 5 Spectral Card
