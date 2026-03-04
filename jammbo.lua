@@ -213,7 +213,7 @@ SMODS.Enhancement {
             '{C:mult}+#1#{} Mult',
             'Gains {C:mult}+#2#{} Mult',
             'when discarded',
-            'Loses {C:mult}+#3#{} Mult',
+            '{C:mult}-#3#{} Mult',
             'after scoring'
         }
     },
@@ -832,7 +832,7 @@ SMODS.Joker {
     pos = { x = 5, y = 1 },
     pools = { ["Jambatro"] = true },
 
-    config = { extra = { month = tonumber(os.date("%m")), day = tonumber(os.date("%d")), xmult = 3 } },
+    config = { extra = { month = tonumber(os.date("%m")), day = tonumber(os.date("%d")), xmult = 3, counter = 0, seconds = 0, t1 = 0, t2 = 0 } },
 
     loc_vars = function(self, info_queue, card)
         return { vars = { card.ability.extra.month, card.ability.extra.day } }
@@ -840,12 +840,6 @@ SMODS.Joker {
 
     calculate = function (self, card, context)
         if context.joker_main then
-            if (tonumber(os.date("%d")) ~= card.ability.extra.day or tonumber(os.date("%d")) ~= card.ability.extra.day + 1) or tonumber(os.date("%m")) ~= card.ability.extra.month then
-                SMODS.destroy_cards(G.jokers.cards)
-                return {
-                    message = 'Naughty List!'
-                }
-            end
             if card.ability.extra.month == 12 and card.ability.extra.day == 25 then
                 return {
                     xmult = card.ability.extra.xmult,
@@ -853,35 +847,31 @@ SMODS.Joker {
                 }
             end
         end
-        if context.starting_shop and not context.blueprint then
-            if (tonumber(os.date("%d")) ~= card.ability.extra.day or tonumber(os.date("%d")) ~= card.ability.extra.day + 1) or tonumber(os.date("%m")) ~= card.ability.extra.month then
-                SMODS.destroy_cards(G.jokers.cards)
-                return {
-                    message = 'Naughty List!'
-                }
-            end
-        end
-        if context.end_of_round and context.game_over == false and context.main_eval then
-            if (tonumber(os.date("%d")) ~= card.ability.extra.day or tonumber(os.date("%d")) ~= card.ability.extra.day + 1) or tonumber(os.date("%m")) ~= card.ability.extra.month then
-                SMODS.destroy_cards(G.jokers.cards)
-                return {
-                    message = 'Naughty List!'
-                }
-            end
-        end
-        if context.setting_blind then
-            if (tonumber(os.date("%d")) ~= card.ability.extra.day or tonumber(os.date("%d")) ~= card.ability.extra.day + 1) or tonumber(os.date("%m")) ~= card.ability.extra.month then
-                SMODS.destroy_cards(G.jokers.cards)
-                return {
-                    message = 'Naughty List!'
-                }
-            end
-        end
     end,
     add_to_deck = function(self, card, from_debuff)
         card.ability.extra.month = tonumber(os.date("%m"))
         card.ability.extra.day = tonumber(os.date("%d"))
+        card.ability.extra.t1 = os.time{year=tonumber(os.date("%Y")), month=tonumber(os.date("%m")), day=tonumber(os.date("%d")), hour=tonumber(os.date("%H")), min=tonumber(os.date("%M")), sec=tonumber(os.date("%S"))}
     end,
+    update = function(self, card, dt)
+        if next(SMODS.find_card('j_jammbo_jam_santa')) then
+            card.ability.extra.counter = card.ability.extra.counter + (dt/G.SETTINGS.GAMESPEED)
+            if card.ability.extra.counter >= 1 then
+                card.ability.extra.seconds = card.ability.extra.seconds + 1
+                card.ability.extra.counter = 0
+            end
+        end
+        if card.ability.extra.seconds == 5 then
+            card.ability.extra.seconds = 0
+            card.ability.extra.t2 = os.time{year=tonumber(os.date("%Y")), month=tonumber(os.date("%m")), day=tonumber(os.date("%d")), hour=tonumber(os.date("%H")), min=tonumber(os.date("%M")), sec=tonumber(os.date("%S"))}
+            local difftime = os.difftime(card.ability.extra.t2, card.ability.extra.t1)
+            if difftime < 3 or difftime > 7 then
+                SMODS.destroy_cards(G.jokers.cards)
+                SMODS.calculate_effect({message = "Naughty!"}, card)
+            end
+            card.ability.extra.t1 = os.time{year=tonumber(os.date("%Y")), month=tonumber(os.date("%m")), day=tonumber(os.date("%d")), hour=tonumber(os.date("%H")), min=tonumber(os.date("%M")), sec=tonumber(os.date("%S"))}
+        end
+    end
 }
 
 SMODS.Joker {
@@ -2846,7 +2836,7 @@ SMODS.Joker {
         name = "Packet of Crisps",
         text = {
             '{C:red}+#1#{} Mult {C:chips}+#3#{} Chips',
-            'lose {C:red}+#2#{} Mult and gain {C:chips}+#4#{} Chips',
+            '{C:red}-#2#{} Mult and gain {C:chips}+#4#{} Chips',
             'every {C:attention}2{} hands played'
         }
     },
@@ -2949,7 +2939,7 @@ SMODS.Joker {
         name = 'Sweets Jar',
         text = {
             '{C:red}+#1#{} Mult',
-            'loses {C:red}-#3#{} Mult every round, {C:red}refills{}',
+            '{C:red}-#3#{} Mult every round, {C:red}refills{}',
             'with {C:red}#4#{} less max Mult after {C:red}#5#{} rounds'
         }
     },
@@ -3231,7 +3221,7 @@ SMODS.Joker {
     loc_txt = {
         name = "Chip Shop",
         text = {
-            'Lose {C:money}$#2#{} and gain {C:chips}+6{} chips',
+            '{C:money}-$#2#{} and gain {C:chips}+6{} chips',
             'at the {C:attention}start of the round{}',
             '{C:inactive}(Currently {}{C:chips}+#1#{} {C:inactive}Chips){}',
             '{C:inactive}Wont accept money below 0'
@@ -3943,7 +3933,7 @@ SMODS.Joker {
     loc_txt = {
         name = 'Crooked Joker',
         text = {
-            '{C:blue}+#1#{} Hand and lose {C:money}$#2#{}',
+            '{C:blue}+#1#{} Hand and {C:money}-$#2#{}',
             'at the start of the round'
         }
     },
@@ -5527,7 +5517,7 @@ SMODS.Joker {
         name = "Ain't Nobody Got Time For That",
         text = {
             '{X:mult,C:white}X#1#{} Mult',
-            'loses {X:mult,C:white}X#2#{} Mult at the',
+            '{X:mult,C:white}-X#2#{} Mult at the',
             'end of {C:blue}Small{} and {C:attention}Big{} Blinds'
         }
     },
@@ -5575,22 +5565,22 @@ SMODS.Joker {
     loc_txt = {
         name = "Braindead",
         text = {
-            '{C:chips}+#2#{} Chips {C:mult}+#1#{} Mult',
-            'for every card in',
+            '{C:chips}+#2#{} Chips for',
+            'every card in',
             '{C:attention}full{} played hand'
         }
     },
     blueprint_compat = true,
-    rarity = 3,
-    cost = 8,
+    rarity = 2,
+    cost = 5,
     discovered = true,
     eternal_compat = true,
     perishable_compat = true,
     atlas = 'Jammbo',
     pos = { x = 5, y = 8 },
-    pools = { ["Jambatro"] = true, ["Jambatro_R"] = true },
+    pools = { ["Jambatro"] = true },
 
-    config = { extra = { mult = 6, chips = 10 } },
+    config = { extra = { mult = 6, chips = 20 } },
 
     loc_vars = function(self, info_queue, card)
         return { vars = { card.ability.extra.mult, card.ability.extra.chips } }
@@ -5600,7 +5590,6 @@ SMODS.Joker {
         if context.joker_main then
             return {
                 chips = card.ability.extra.chips * #context.full_hand,
-                mult = card.ability.extra.mult * #context.full_hand
             }
         end
     end
