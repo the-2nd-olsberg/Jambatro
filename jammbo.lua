@@ -131,17 +131,23 @@ SMODS.Enhancement {
     loc_txt = {
         name = "Diamond Card",
         text = {
-            "{X:chips,C:white} X#1# {} Chips",
-            "while this card",
-            "stays in hand",
+            "{X:money,C:white}X$#1#{} when card",
+            "is held in hand at",
+            "the end of the round"
         }
     },
     atlas = 'jam_enhancements',
     pos = { x = 0, y = 0 },
-    config = { h_x_chips = 1.3 },
+    config = { extra = { x_money = 1.5 } },
     loc_vars = function(self, info_queue, card)
-        return { vars = { card.ability.h_x_chips } }
+        return { vars = { card.ability.extra.x_money } }
     end,
+    calculate = function(self, card, context)
+        if context.end_of_round and context.cardarea == G.hand and context.other_card == card then
+            SMODS.calculate_effect({message = "X$1.5"}, card)
+            G.GAME.dollars = G.GAME.dollars * card.ability.extra.x_money
+        end
+    end
 }
 
 SMODS.Enhancement {
@@ -2364,9 +2370,9 @@ SMODS.Joker {
         name = '0118 999 8819 9911 9725...3',
         text = {
             'Play each {C:attention}digit{} of the new number',
-            'for the {C:attention}Emergency Services{} to earn',
-            '{X:chips,C:white}X2{} Chips! Each correct',
-            'digit gives {C:chips}+50{} Chips',
+            'for the {C:attention}Emergency Services{}!',
+            'Gain {C:chips}+#1#{} for every digit played',
+            '{C:inactive}(Currently {C:chips}#4#{}{C:inactive} Chips){}',
             '{C:inactive}(Next digit: {C:attention}#2#{}{C:inactive}){}',
             '{C:inactive}Can count multiple digits per hand{}'
         }
@@ -2381,10 +2387,10 @@ SMODS.Joker {
     pos = { x = 4, y = 2 },
     pools = { ["Jambatro"] = true },
 
-    config = { extra = { chips = 50, next_number = "Ace", digit = 1 } },
+    config = { extra = { chips = 7, next_number = "Ace", digit = 1, placeholder = 0 } },
 
     loc_vars = function(self, info_queue, card)
-        return { vars = { card.ability.extra.chips, card.ability.extra.next_number, card.ability.extra.digit } }
+        return { vars = { card.ability.extra.chips, card.ability.extra.next_number, card.ability.extra.digit, card.ability.extra.placeholder } }
     end,
 
     calculate = function(self, card, context)
@@ -2398,17 +2404,23 @@ SMODS.Joker {
                 card.ability.extra.next_number = digits[card.ability.extra.digit]
             end
             return {
-                chips = card.ability.extra.chips,
                 message = "Well, thats easy to remember!",
             }
         end
-
+        if context.joker_main and card.ability.extra.digit < 20 then
+            return {
+                chips = card.ability.extra.placeholder
+            }
+        end
         if context.joker_main and card.ability.extra.digit >= 20 then
             return {
-                xchips = 2,
+                chips = (card.ability.extra.chips * (card.ability.extra.digit - 1)) or 0,
                 message = "I've just finished my milk"
             }
         end
+    end,
+    update = function(self, card, dt)
+        card.ability.extra.placeholder = (card.ability.extra.chips * (card.ability.extra.digit - 1)) or 0
     end
 }
 
@@ -2746,8 +2758,8 @@ SMODS.Joker {
         name = "Gross Michael",
         text = {
             '{C:red}+#3#{} Mult',
-            '{C:green}#1# in #2#{} chance of',
-            'losing {C:red}+3{} Mult'
+            '{C:green}#1# in #2#{} chance',
+            'of {C:red}-3{} Mult'
         }
     },
     blueprint_compat = true,
@@ -3050,17 +3062,19 @@ SMODS.Joker {
     end,
 
     update = function(self, card, dt)
-        for _, v in pairs(G.I.CARD) do
-            if v.ability and v.ability.set and (v.ability.set == "Voucher" or v.ability.set == "Booster") then
-                local match = false
-                for i = 1, #card.ability.extra.vouchers_redeemed do
-                    if v.config.center.key == card.ability.extra.vouchers_redeemed[i] then
-                        match = true
+        if next(SMODS.find_card('j_jammbo_jam_localshopforlocalpeople')) then
+            for _, v in pairs(G.I.CARD) do
+                if v.ability and v.ability.set and (v.ability.set == "Voucher" or v.ability.set == "Booster") then
+                    local match = false
+                    for i = 1, #card.ability.extra.vouchers_redeemed do
+                        if v.config.center.key == card.ability.extra.vouchers_redeemed[i] then
+                            match = true
+                        end
                     end
-                end
-                if match == false then
-                    card.ability.extra.vouchers_redeemed[#card.ability.extra.vouchers_redeemed + 1] = v.config.center.key
-                    v.cost = math.floor(v.cost + (v.cost/(100/card.ability.extra.percent)))
+                    if match == false then
+                        card.ability.extra.vouchers_redeemed[#card.ability.extra.vouchers_redeemed + 1] = v.config.center.key
+                        v.cost = math.floor(v.cost + (v.cost/(100/card.ability.extra.percent)))
+                    end
                 end
             end
         end
@@ -4516,9 +4530,9 @@ SMODS.Joker {
     loc_txt = {
         name = 'Diamond Dealer',
         text = {
-            '{X:chips,C:white}X#1#{} Chips for',
+            '{X:red,C:white}X#1#{} Mult for',
             'each {C:attention}Diamond card{} in your deck',
-            '{C:inactive}(Currently {}{X:chips,C:white}X#2#{} {C:inactive}Chips){}',
+            '{C:inactive}(Currently {}{X:red,C:white}X#2#{} {C:inactive}Mult){}',
         }
     },
     blueprint_compat = true,
@@ -4550,7 +4564,7 @@ SMODS.Joker {
                 if SMODS.has_enhancement(playing_card, 'm_jammbo_jam_diamond') then diamond_tally = diamond_tally + 1 end
             end
             return {
-                xchips = (card.ability.extra.xchips * diamond_tally) + 1
+                xmult = (card.ability.extra.xchips * diamond_tally) + 1
             }
         end
     end,
@@ -5531,7 +5545,7 @@ SMODS.Joker {
     pos = { x = 3, y = 8 },
     pools = { ["Jambatro"] = true, ["Jambatro_R"] = true },
 
-    config = { extra = { xmult = 5, xmult_gain = 0.15 } },
+    config = { extra = { xmult = 5, xmult_gain = 0.3 } },
 
     loc_vars = function(self, info_queue, card)
         return { vars = { card.ability.extra.xmult, card.ability.extra.xmult_gain } }
@@ -5578,7 +5592,7 @@ SMODS.Joker {
     perishable_compat = true,
     atlas = 'Jammbo',
     pos = { x = 5, y = 8 },
-    pools = { ["Jambatro"] = true },
+    pools = { ["Jambatro"] = true, ["Jambatro_R"] = false },
 
     config = { extra = { mult = 6, chips = 20 } },
 
