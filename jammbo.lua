@@ -144,8 +144,8 @@ SMODS.Enhancement {
     end,
     calculate = function(self, card, context)
         if context.end_of_round and context.cardarea == G.hand and context.other_card == card then
-            SMODS.calculate_effect({message = "X$1.5"}, card)
-            G.GAME.dollars = G.GAME.dollars * card.ability.extra.x_money
+            G.GAME.dollars = G.GAME.dollars + (G.GAME.dollars * 0.5)
+            SMODS.calculate_effect({message = "MONEY!"}, card)
         end
     end
 }
